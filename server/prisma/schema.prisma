@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  username     String        @unique
+  identifier   String        @unique // Can store either email or Google ID
+  authType     AuthType      @default(EMAIL)
+  password     String
+  img          String
+  role         Role          @default(USER)
+  devices      Device[]
+  transactions Transaction[]
+}
+
+model Device {
+  DeviceId       String        @id @default(uuid())
+  Quantity       Int
+  DeviceName     String
+  user           User?         @relation(fields: [userId], references: [id])
+  userId         String?
+  Brand          String
+  Model          String
+  Category       Category      @relation(fields: [categoryid], references: [CategoryId])
+  categoryid     String
+  Condition      String // e.g., New, Used, Refurbished
+  Specifications Json // For storing CPU, RAM, Storage, etc.
+  Description    String
+  Images         String[] // Array of image URLs
+  SerialNumber   String
+  status         Status        @default(PENDING)
+  Price          Float // Price of the device
+  transactions   Transaction[]
+}
+
+model Transaction {
+  TransactionId String        @id @default(uuid())
+  device        Device        @relation(fields: [deviceId], references: [DeviceId])
+  deviceId      String
+  user          User          @relation(fields: [userId], references: [id])
+  userId        String
+  price         Float
+  paymentStatus PaymentStatus
+  createdAt     DateTime      @default(now())
+}
+
+model Category {
+  CategoryId   String   @id @default(uuid())
+  CategoryName String   @unique
+  Image        String
+  Description  String
+  devices      Device[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AuthType {
+  GOOGLEID
+  EMAIL
+}
+
+enum Status {
+  PENDING
+  CONFIRMED
+  REJECTED
+  SOLD
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
