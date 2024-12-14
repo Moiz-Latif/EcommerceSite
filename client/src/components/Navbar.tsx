@@ -7,6 +7,8 @@ import cart from '../assets/shopping-cart.png';
 import search from '../assets/search.png';
 import dropdown from "../assets/down-arrow.png";
 import wishlist from '../assets/wishlist.png';
+import { WishListDropDown } from './WishListDropDown';
+
 
 interface UserNavbarProps {
     ImageURl: string;
@@ -16,9 +18,13 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isWishList, setIsWishList] = useState(false);
     const categories = useSelector((state: RootState) => state.category.categories);
+    const wishList = useSelector((state: RootState) => state.wishList.list);
+    const wishlistCount = wishList.filter(item => item.inWishList).length;
     const dropdownRef = useRef<HTMLDivElement>(null);
     const searchRef = useRef<HTMLDivElement>(null);
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -30,43 +36,52 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
             }
         };
 
+
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, []);
 
+
+    }, []);
     return (
         <nav className="fixed w-full h-16 font-roboto px-4 md:px-8 lg:px-16 border-b border-indigo_dye-300 bg-ghost_white-500 z-50">
             <div className='flex justify-between items-center h-full'>
                 {/* Logo */}
                 <NavLink to="" className='flex items-center'>
                     <img src={logo} alt="Gizmo logo" className='w-8 md:w-10' />
-                    <span className='text-lg md:text-xl font-medium text-rich_black ml-2'>Gizmo</span>
+                    <span className='text-lg md:text-xl font-medium text-rich_black ml-1'>Gizmo</span>
                 </NavLink>
 
                 {/* Center Section */}
-                <div className='hidden md:flex justify-center items-center space-x-4 ml-6'>
+                <div className='hidden md:flex justify-center items-center space-x-4 ml-10'>
                     <NavLink to="" className='text-base text-black hover:opacity-70 transition-colors duration-300'>Home</NavLink>
-                    <div className='relative' ref={dropdownRef}>
+                    <div className='relative' ref={dropdownRef} onMouseEnter={() => setIsCategoryOpen(true)
+                    }
+                        onMouseLeave={() => setIsCategoryOpen(false)}>
                         <button
                             className='flex items-center gap-1 text-base text-black hover:opacity-70 transition-colors duration-300'
-                            onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+
                         >
                             All Categories
                             <img src={dropdown} alt="Dropdown arrow" className={`w-4 transition-transform duration-300 ${isCategoryOpen ? 'transform rotate-180' : ''}`} />
                         </button>
                         {isCategoryOpen && (
-                            <div className="absolute left-0 mt-2 w-48 bg-black rounded-md shadow-lg py-1 z-50">
-                                {categories.map((category: any) => (
-                                    <NavLink
-                                        key={category.CategoryId}
-                                        to={`/category/${category.CategoryId}`}
-                                        className="block px-4 py-2 text-sm text-ghost_white-900 hover:bg-ghost_white hover:text-black transition-colors duration-300"
-                                    >
-                                        {category.CategoryName}
-                                    </NavLink>
-                                ))}
+                            <div className="absolute left-0 w-48 bg-black rounded-md shadow-lg py-1 z-50">
+                                <ul className="divide-y divide-gray-600">
+                                    {categories.map((category: any) => (
+                                        <li>
+                                            <NavLink
+                                                key={category.CategoryId}
+                                                to={`/category/${category.CategoryId}`}
+                                                className="block px-4 py-2 text-sm text-ghost_white-900 hover:bg-ghost_white hover:text-black transition-colors duration-300"
+                                            >
+                                                {category.CategoryName}
+                                            </NavLink>
+                                        </li>
+                                    ))}
+                                </ul>
+
                             </div>
                         )}
                     </div>
@@ -78,7 +93,7 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                 {/* Right Section */}
                 <div className='flex items-center space-x-4 md:space-x-2'>
                     <div className='relative' ref={searchRef}>
-                        <button 
+                        <button
                             onClick={() => setIsSearchOpen(!isSearchOpen)}
                             className='p-2 hover:bg-ghost_white-900 rounded-full transition-colors duration-300'
                         >
@@ -94,8 +109,17 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                             </div>
                         )}
                     </div>
-                    <NavLink to="/wishlist" className='p-2 hover:bg-ghost_white-900 rounded-full transition-colors duration-300'>
+                    <NavLink to="/wishlist" className='p-2 hover:bg-ghost_white-900 rounded-full transition-colors duration-300 relative' onMouseEnter={() => setIsWishList(true)}
+                        onMouseLeave={() => setIsWishList(false)}>
                         <img src={wishlist} alt="Wishlist" className='w-5 h-5' />
+                        {wishlistCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-engineering_orange-700 text-ghost_white-500 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                {wishlistCount}
+                            </span>
+                        )}
+                        {
+                            isWishList && <WishListDropDown />
+                        }
                     </NavLink>
                     <NavLink to="/cart" className='p-2 hover:bg-ghost_white-900 rounded-full transition-colors duration-300'>
                         <img src={cart} alt="Shopping cart" className='w-5 h-5' />
@@ -106,26 +130,33 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                             onMouseEnter={() => setIsOpen(true)}
                             onMouseLeave={() => setIsOpen(false)}
                         >
-                            <button className='flex items-center space-x-1 p-1 hover:bg-ghost_white-900 rounded-full transition-colors duration-300'>
+                            <button className="flex items-center space-x-1 p-1 hover:bg-ghost_white-900 rounded-full transition-colors duration-300">
                                 <img
                                     src={ImageURl}
                                     alt="User profile"
                                     className="rounded-full w-7 h-7"
                                 />
-                                <img src={dropdown} alt="Dropdown arrow" className='w-4 h-4'/>
+                                <img src={dropdown} alt="Dropdown arrow" className="w-4 h-4" />
                             </button>
 
                             {isOpen && (
                                 <div className="absolute right-0 w-48 bg-rich_black rounded-md shadow-lg py-1 z-50">
-                                    {['Profile', 'Settings', 'Activity Log', 'Help & Support'].map((item) => (
-                                        <a
-                                            key={item}
-                                            href={`#${item.toLowerCase().replace(/ & /g, '-').replace(' ', '-')}`}
-                                            className="block px-4 py-2 text-sm text-ghost_white hover:bg-ghost_white-500 hover:text-rich_black transition-colors duration-300"
-                                        >
-                                            {item}
-                                        </a>
-                                    ))}
+                                    <ul className="divide-y divide-gray-600">
+                                        {['Profile', 'Settings', 'Activity Log', 'Help & Support'].map((item) => (
+                                            <li key={item}>
+                                                <a
+                                                    href={`#${item.toLowerCase().replace(/ & /g, '-').replace(' ', '-')}`}
+                                                    className="block px-4 py-2 text-sm text-ghost_white hover:bg-ghost_white-500 hover:text-rich_black transition-colors duration-300"
+                                                >
+                                                    {item}
+                                                </a>
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    {/* Divider above Logout */}
+                                    <div className="my-1 border-t border-gray-600"></div>
+
                                     <NavLink
                                         to="/"
                                         className="block px-4 py-2 text-sm text-ghost_white hover:bg-engineering_orange-700 hover:text-ghost_white-500 transition-colors duration-300"
@@ -136,6 +167,7 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                             )}
                         </div>
                     </div>
+
                 </div>
             </div>
         </nav>

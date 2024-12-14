@@ -28,7 +28,7 @@ export const CategoryCarousel: React.FC = () => {
   };
 
   return (
-    <section className="relative w-full bg-black text-white py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section className="relative w-full bg-black text-white py-16 px-4 sm:px-6 lg:px-8 overflow-hidden -mt-48">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-4xl sm:text-5xl font-bold mb-12 font-roboto text-center bg-gradient-to-r from-black via-gray-200 to-gray-500 bg-clip-text text-transparent">
           Shop by Category

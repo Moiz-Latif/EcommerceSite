@@ -12,6 +12,7 @@ export const HeroSection: React.FC = () => {
     const dispatch = useDispatch();
     const categories = useSelector((state: RootState) => state.category.categories);
     const devices = useSelector((state: RootState) => state.device.devices);
+    const wishList = useSelector((state:RootState)=> state.wishList.list);
 
     useEffect(() => {
         if (categories.length === 0) {
@@ -36,8 +37,9 @@ export const HeroSection: React.FC = () => {
                     const response = await axios.get("http://localhost:3000/AdminDashboard/GetDevices");
                     if (response && response.data) {
                         dispatch(setDevices(response.data.fixedDevices));
-                        dispatch(setWishList(response.data.fixedDevices));
-
+                        if(wishList.length === 0){
+                            dispatch(setWishList(response.data.fixedDevices));
+                        }
                     }
                 } catch (error) {
                     console.error("Error fetching devices:", error);

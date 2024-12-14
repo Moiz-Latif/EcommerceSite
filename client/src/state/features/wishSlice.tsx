@@ -44,7 +44,8 @@ const wishlistSlice = createSlice({
        //add to wishlist
        addToWishList: (state , action) => {
             const productId = action.payload;
-            const product = state.list.find((item) => item.Device.DeviceId === productId);
+            //@ts-ignore
+            const product = state.list.find((item) => item.DeviceId === productId);
             if(product){
                 product.inWishList = true;
             } else {
@@ -55,7 +56,8 @@ const wishlistSlice = createSlice({
        //remove from wishlist
        removeFromWishList: (state , action) => {
             const productId = action.payload;
-            const product = state.list.find((item) => item.Device.DeviceId === productId);
+            //@ts-ignore
+            const product = state.list.find((item) => item.DeviceId === productId);
             if(product){
                 product.inWishList = false;
             } else {

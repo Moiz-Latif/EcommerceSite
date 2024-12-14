@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../state/store';
 import { ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import { addToWishList , removeFromWishList } from '../state/features/wishSlice';
 
 export const FeaturedProducts: React.FC = () => {
+  const dispatch = useDispatch();
   const allDevices = useSelector((state: RootState) => state.device.devices);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
@@ -32,14 +33,15 @@ export const FeaturedProducts: React.FC = () => {
   };
 
   const toggleWishlist = (deviceId: string) => {
+    console.log(deviceId);
     setWishlist(prevWishlist => {
       const newWishlist = new Set(prevWishlist);
       if (newWishlist.has(deviceId)) {
+        dispatch(removeFromWishList(deviceId));
         newWishlist.delete(deviceId);
-        removeFromWishList(deviceId);
       } else {
+        dispatch(addToWishList(deviceId));
         newWishlist.add(deviceId);
-        addToWishList(deviceId);
       }
       return newWishlist;
     });
