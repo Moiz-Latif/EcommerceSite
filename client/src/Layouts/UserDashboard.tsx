@@ -17,7 +17,6 @@ import { DealOfTheDay } from "../components/DealoftheDay";
 export const UserDashboard = () => {
   const { UserId } = useParams<{ UserId: string }>();
   const [image, setImage] = useState("");
-  console.log(UserId);
   useEffect(()=>{
     const getData = async () => {
       const response = await axios.get(`http://localhost:3000/UserDashboard/${UserId}`);

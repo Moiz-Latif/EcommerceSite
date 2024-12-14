@@ -46,7 +46,7 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                 </NavLink>
 
                 {/* Center Section */}
-                <div className='hidden md:flex justify-center items-center space-x-6'>
+                <div className='hidden md:flex justify-center items-center space-x-4 ml-6'>
                     <NavLink to="" className='text-base text-black hover:opacity-70 transition-colors duration-300'>Home</NavLink>
                     <div className='relative' ref={dropdownRef}>
                         <button
@@ -57,12 +57,12 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                             <img src={dropdown} alt="Dropdown arrow" className={`w-4 transition-transform duration-300 ${isCategoryOpen ? 'transform rotate-180' : ''}`} />
                         </button>
                         {isCategoryOpen && (
-                            <div className="absolute left-0 mt-2 w-48 bg-ghost_white rounded-md shadow-lg py-1 z-50">
+                            <div className="absolute left-0 mt-2 w-48 bg-black rounded-md shadow-lg py-1 z-50">
                                 {categories.map((category: any) => (
                                     <NavLink
                                         key={category.CategoryId}
                                         to={`/category/${category.CategoryId}`}
-                                        className="block px-4 py-2 text-sm text-black hover:bg-black hover:text-ghost_white transition-colors duration-300"
+                                        className="block px-4 py-2 text-sm text-ghost_white-900 hover:bg-ghost_white hover:text-black transition-colors duration-300"
                                     >
                                         {category.CategoryName}
                                     </NavLink>
@@ -76,7 +76,7 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                 </div>
 
                 {/* Right Section */}
-                <div className='flex items-center space-x-4 md:space-x-6'>
+                <div className='flex items-center space-x-4 md:space-x-2'>
                     <div className='relative' ref={searchRef}>
                         <button 
                             onClick={() => setIsSearchOpen(!isSearchOpen)}
@@ -116,7 +116,7 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                             </button>
 
                             {isOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-rich_black rounded-md shadow-lg py-1 z-50">
+                                <div className="absolute right-0 w-48 bg-rich_black rounded-md shadow-lg py-1 z-50">
                                     {['Profile', 'Settings', 'Activity Log', 'Help & Support'].map((item) => (
                                         <a
                                             key={item}

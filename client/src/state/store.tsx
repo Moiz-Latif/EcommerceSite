@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import categoryReducer from './features/categoriesSlice';
 import deviceReducer from './features/devicesSlice';
+import wishListReducer from "./features/wishSlice";
 
 export const store = configureStore({
     reducer: {
         category : categoryReducer,
-        device: deviceReducer
+        device: deviceReducer,
+        wishList: wishListReducer
     }
 });
 

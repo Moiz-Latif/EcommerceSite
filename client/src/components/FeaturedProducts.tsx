@@ -1,21 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../state/store';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-interface Device {
-  DeviceId: string;
-  DeviceName: string;
-  Price: number;
-  Images: string[];
-  Brand: string;
-  Model: string;
-}
+import { ChevronLeft, ChevronRight, Heart } from 'lucide-react';
+import { addToWishList , removeFromWishList } from '../state/features/wishSlice';
 
 export const FeaturedProducts: React.FC = () => {
   const allDevices = useSelector((state: RootState) => state.device.devices);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const sliderRef = useRef<HTMLDivElement>(null);
+  
 
   // Select 5 devices of different brands
   const featuredDevices = React.useMemo(() => {
@@ -35,6 +29,20 @@ export const FeaturedProducts: React.FC = () => {
 
   const prevSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + featuredDevices.length) % featuredDevices.length);
+  };
+
+  const toggleWishlist = (deviceId: string) => {
+    setWishlist(prevWishlist => {
+      const newWishlist = new Set(prevWishlist);
+      if (newWishlist.has(deviceId)) {
+        newWishlist.delete(deviceId);
+        removeFromWishList(deviceId);
+      } else {
+        newWishlist.add(deviceId);
+        addToWishList(deviceId);
+      }
+      return newWishlist;
+    });
   };
 
   useEffect(() => {
@@ -58,12 +66,23 @@ export const FeaturedProducts: React.FC = () => {
                 key={index}
                 className="flex-none w-full snap-center"
               >
-                <div className="max-w-lg mx-auto bg-white text-black rounded-xl overflow-hidden shadow-lg hover:shadow-2xl duration-30 transition-all duration-300 ">
+                <div className="max-w-lg mx-auto bg-white text-black rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 relative">
                   <img
                     src={device.Images[1]}
                     alt={device.DeviceName}
                     className="w-full h-72 object-contain transition-transform duration-300 transform hover:scale-110 z-20"
                   />
+                  <button
+                    onClick={() => toggleWishlist(device.DeviceId)}
+                    className="absolute top-4 right-4 z-30 p-2 rounded-full bg-white shadow-md transition-colors duration-300"
+                    aria-label={wishlist.has(device.DeviceId) ? "Remove from wishlist" : "Add to wishlist"}
+                  >
+                    <Heart
+                      className={`w-6 h-6 ${
+                        wishlist.has(device.DeviceId) ? 'fill-red-500 text-red-500' : 'text-gray-400'
+                      }`}
+                    />
+                  </button>
                   <div className="p-6 -mt-12 flex flex-col justify-center items-center">
                     <h3 className="text-xl font-bold mb-2 truncate z-40">{device.DeviceName}</h3>
                     <p className="text-sm text-gray-600 mb-2 z-40">
@@ -109,3 +128,4 @@ export const FeaturedProducts: React.FC = () => {
     </section>
   );
 };
+
