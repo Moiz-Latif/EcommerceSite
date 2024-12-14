@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../state/store';
 import logo from '../assets/blockchain.png';
@@ -15,6 +15,7 @@ interface UserNavbarProps {
 }
 
 export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
+    const { UserId } = useParams()
     const [isOpen, setIsOpen] = useState(false);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -55,7 +56,7 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
 
                 {/* Center Section */}
                 <div className='hidden md:flex justify-center items-center space-x-4 ml-10'>
-                    <NavLink to="" className='text-base text-black hover:opacity-70 transition-colors duration-300'>Home</NavLink>
+                    <NavLink to={`/UserDashboard/${UserId}`} className='text-base text-black hover:opacity-70 transition-colors duration-300'>Home</NavLink>
                     <div className='relative' ref={dropdownRef} onMouseEnter={() => setIsCategoryOpen(true)
                     }
                         onMouseLeave={() => setIsCategoryOpen(false)}>

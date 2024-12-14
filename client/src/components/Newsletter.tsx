@@ -42,11 +42,11 @@ export const Features: React.FC = () => {
           Why Choose <span className="border-b-4 border-black">Gizmo</span>?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
-          <h1 className='absolute z-10 -left-10 -top-40 text-[30rem] tracking-tighter opacity-10'>Gizmo</h1>
+          <h1 className='absolute z-0 -left-10 -top-40 text-[30rem] tracking-tighter opacity-10'>Gizmo</h1>
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300 border-2 border-gray-200 hover:border-black group z-20 hover:cursor-pointer"
+              className="bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300 border-2 border-gray-200 hover:border-black group z-10 hover:cursor-pointer"
             >
               <div className="flex items-center mb-4">
                 <div className="text-3xl mr-4 text-black group-hover:scale-110 transition-transform duration-300">
@@ -60,10 +60,10 @@ export const Features: React.FC = () => {
             </div>
           ))}
         </div>
-        <div className="mt-16 text-center z-40 hover:cursor-pointer">
+        <div className="mt-16 text-center">
           <a 
             href="#" 
-            className="inline-block bg-black text-white font-semibold py-3 px-10 rounded-md hover:opacity-80 transition-colors duration-300 hover:cursor-pointer"
+            className="inline-block bg-black text-white font-semibold py-3 px-10 rounded-md hover:opacity-80 transition-opacity duration-300"
           >
             Join the Gizmo Family
           </a>
