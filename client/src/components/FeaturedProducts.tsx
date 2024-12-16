@@ -1,16 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../state/store';
 import { ChevronLeft, ChevronRight, Heart } from 'lucide-react';
-import { addToWishList , removeFromWishList } from '../state/features/wishSlice';
+import { addToWishList, removeFromWishList } from '../state/features/wishSlice';
 
 export const FeaturedProducts: React.FC = () => {
   const dispatch = useDispatch();
   const allDevices = useSelector((state: RootState) => state.device.devices);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const wishlist = useSelector((state: RootState) => state.wishList.list);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
-  
 
   // Select 5 devices of different brands
   const featuredDevices = React.useMemo(() => {
@@ -33,18 +32,13 @@ export const FeaturedProducts: React.FC = () => {
   };
 
   const toggleWishlist = (deviceId: string) => {
-    console.log(deviceId);
-    setWishlist(prevWishlist => {
-      const newWishlist = new Set(prevWishlist);
-      if (newWishlist.has(deviceId)) {
-        dispatch(removeFromWishList(deviceId));
-        newWishlist.delete(deviceId);
-      } else {
-        dispatch(addToWishList(deviceId));
-        newWishlist.add(deviceId);
-      }
-      return newWishlist;
-    });
+    //@ts-ignore
+    const isInWishlist = wishlist.some(item => item.DeviceId === deviceId && item.inWishList);
+    if (isInWishlist) {
+      dispatch(removeFromWishList(deviceId));
+    } else {
+      dispatch(addToWishList(deviceId));
+    }
   };
 
   useEffect(() => {
@@ -77,11 +71,13 @@ export const FeaturedProducts: React.FC = () => {
                   <button
                     onClick={() => toggleWishlist(device.DeviceId)}
                     className="absolute top-4 right-4 z-30 p-2 rounded-full bg-white shadow-md transition-colors duration-300"
-                    aria-label={wishlist.has(device.DeviceId) ? "Remove from wishlist" : "Add to wishlist"}
+                    //@ts-ignore
+                    aria-label={wishlist.some(item => item.DeviceId === device.DeviceId && item.inWishList) ? "Remove from wishlist" : "Add to wishlist"}
                   >
                     <Heart
                       className={`w-6 h-6 ${
-                        wishlist.has(device.DeviceId) ? 'fill-red-500 text-red-500' : 'text-gray-400'
+                        //@ts-ignore
+                        wishlist.some(item => item.DeviceId === device.DeviceId && item.inWishList) ? 'fill-red-500 text-red-500' : 'text-gray-400'
                       }`}
                     />
                   </button>
