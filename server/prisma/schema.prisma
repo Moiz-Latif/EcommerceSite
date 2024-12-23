@@ -8,15 +8,24 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  username     String        @unique
-  identifier   String        @unique // Can store either email or Google ID
-  authType     AuthType      @default(EMAIL)
-  password     String
-  img          String
-  role         Role          @default(USER)
-  devices      Device[]
-  transactions Transaction[]
+  id              String        @id @default(uuid())
+  username        String        @unique
+  identifier      String        @unique // Can store either email or Google ID
+  authType        AuthType      @default(EMAIL)
+  password        String
+  img             String
+  role            Role          @default(USER)
+  devices         Device[] 
+  WishListDevices String[]
+  CartDevices     Cart[]
+  transactions    Transaction[]
+}
+
+model Cart {
+  DeviceId String  @id @default(uuid())
+  Quantity Int
+  user     User?   @relation(fields: [userId], references: [id])
+  userId   String?
 }
 
 model Device {

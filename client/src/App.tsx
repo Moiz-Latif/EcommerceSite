@@ -13,6 +13,7 @@ import { Provider } from "react-redux"
 import { store } from "./state/store"
 import { ProductsPage } from "./pages/ProductsPage"
 import { LandingPage } from "./pages/LandingPage"
+import { ProductPage } from "./pages/ProductPage"
 
 
 const router = createBrowserRouter([
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
       {
         path: 'Category/:CategoryId',
         element: <ProductsPage/>
+      },
+      {
+        path: 'Device/:DeviceId',
+        element: <ProductPage/>
       }
     ]
   },

@@ -1,71 +1,74 @@
-import { createSlice } from "@reduxjs/toolkit";
-
-
-interface Device {
-    DeviceId: string; // Unique identifier for the device
-    Quantity: number; // Stock count of the device
-    DeviceName: string; // Name of the device
-    Brand: string; // Brand of the device
-    Model: string; // Model of the device
-    Category: string; // Category like Smartphone, Laptop, etc.
-    Condition: string; // Condition of the device: New, Used, etc.
-    Specifications: Record<string, string | Record<string, string>>; // Supports nested objects like the camera property
-    Description: string; // Device description
-    Images: string[]; // Array of image URLs
-    SerialNumber: string; // Serial number should be a string
-    Price: number; // Price in dollars
-}
-  
-interface WishListItem {
-    Device: Device,
-    inWishList: boolean
-}
+import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
 interface WishListState {
-    list : WishListItem[]
+  list: string[]; // Array of deviceId strings
 }
 
-const initialState : WishListState = {
-    list: [],
+const initialState: WishListState = {
+  list: [],
 };
 
+// Thunks for async actions
+
+export const setWishListAsync = createAsyncThunk(
+  'wishList/update',
+  async ({UserId} : {UserId : string} , {dispatch})=> {
+    const response = await axios.get(`http://localhost:3000/UserDashboard/${UserId}/WishList/Get`);
+    if(response && response.data){
+      dispatch(setWishList(response.data.User));
+    }
+  }
+)
+export const addToWishlistAsync = createAsyncThunk(
+  'wishList/addToWishlist',
+  async ({ productId, UserId }: { productId: string, UserId: String }, { dispatch }) => {
+    const response = await axios.post(`http://localhost:3000/UserDashboard/${UserId}/WishList/Add`, { productId }); // API to add product cart
+    if(response && response.data){
+      console.log(response.data)
+      dispatch(addToWishList(productId)); // Add product with initial quantity of 1
+    }
+  }
+
+);
+
+export const deleteFromWishListAsync = createAsyncThunk(
+  'wishlist/deleteFromWishList',
+  async ({ productId, UserId }: { productId: string, UserId: string }, { dispatch }) => {
+    const response = await axios.post(`http://localhost:3000/UserDashboard/${UserId}/WishList/Delete`, { productId }); // API to add product cart
+    if (response && response.data) {
+      console.log(response.data)
+      dispatch(removeFromWishList(productId));
+    }
+  }
+)
+
 const wishlistSlice = createSlice({
-    name: "WishList",
-    initialState,
-    reducers : {
-       // Set the entire wishlist, ensuring all items have inWishList as false
-       setWishList: (state, action) => {
-        state.list = action.payload.map((item : any) => ({
-            ...item,
-            inWishList: false, // Ensure all items default to false
-        }));
+  name: "WishList",
+  initialState,
+  reducers: {
+
+    //updateWishlist
+    setWishList: (state , action) => {
+      state.list = action.payload
     },
 
-       //add to wishlist
-       addToWishList: (state , action) => {
-            const productId = action.payload;
-            //@ts-ignore
-            const product = state.list.find((item) => item.DeviceId === productId);
-            if(product){
-                product.inWishList = true;
-            } else {
-                console.error(`Product with ID ${productId} not found in the list`);
-            }
-       },
 
-       //remove from wishlist
-       removeFromWishList: (state , action) => {
-            const productId = action.payload;
-            //@ts-ignore
-            const product = state.list.find((item) => item.DeviceId === productId);
-            if(product){
-                product.inWishList = false;
-            } else {
-                console.error(`Product with ID ${productId} not found in the list`);
-            }
-       }
-    }
+    // Add to wishlist
+    addToWishList: (state, action: PayloadAction<string>) => {
+      const productId = action.payload;
+      if (!state.list.includes(productId)) {
+        state.list.push(productId);
+      }
+    },
+
+    // Remove from wishlist
+    removeFromWishList: (state, action: PayloadAction<string>) => {
+      const productId = action.payload;
+      state.list = state.list.filter((id) => id !== productId);
+    },
+  },
 });
 
-export const { setWishList , addToWishList , removeFromWishList } = wishlistSlice.actions;
+export const { addToWishList, removeFromWishList, setWishList } = wishlistSlice.actions;
 export default wishlistSlice.reducer;

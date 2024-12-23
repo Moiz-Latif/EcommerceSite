@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { Express, Router } from "express";
 import bcrypt from "bcrypt";
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
@@ -65,6 +65,28 @@ async function main() {
     } catch (error) {
       console.error('Error fetching devices:', error);
       res.status(500).json({ error: 'An error occurred while fetching devices' });
+    }
+  });
+
+  router.get('/UserDashboard/:UserId/Wishlist/Get', async (req, res) => {
+    const { UserId } = req.params;
+    const User = await prisma.user.findUnique({
+      where: { id: UserId }
+    });
+
+    if (User) {
+      res.status(200).json({ User: User.WishListDevices })
+    }
+  });
+
+  router.get('/UserDashboard/:UserId/Cart/Set', async (req, res) => {
+    const { UserId } = req.params;
+    const Cart = await prisma.cart.findMany({
+      where: { userId: UserId }
+    })
+    console.log({ CurrentCart: Cart });
+    if (Cart) {
+      res.status(200).json({ Cart });
     }
   });
 
@@ -162,7 +184,6 @@ async function main() {
         id: id
       }
     });
-    console.log(User);
     if (User) {
       res.json({ UserInfo: User })
     }
@@ -285,7 +306,7 @@ async function main() {
 
 
   router.post('/AdminDashboard/AddCategory', upload.single('images'), async (req, res) => {
-    const { CategoryName , Description } = req.body;
+    const { CategoryName, Description } = req.body;
     const Image = req.file?.path;
     const AddCategory = await prisma.category.create({
       data: {
@@ -308,7 +329,7 @@ async function main() {
       const deletedCategory = await prisma.category.delete({
         where: { CategoryId: id },
       });
-      res.status(200).json({message : "Deleted category successfully"});
+      res.status(200).json({ message: "Deleted category successfully" });
     } catch (error) {
       console.error("Error deleting category:", error);
       res.status(500).json({ error: "Failed to delete category." });
@@ -329,6 +350,174 @@ async function main() {
   });
 
 
+  router.post(
+    "/UserDashboard/:UserId/WishList/Add",
+    async (req, res) => {
+      try {
+        const { UserId } = req.params;
+        const { productId } = req.body;
+
+        const checkuser = await prisma.user.findUnique({ where: { id: UserId } });
+
+        if (checkuser?.WishListDevices.includes(productId)) {
+          res.status(200).json({ message: "Device already exists in the wishlist." });
+        } else {
+          const user = await prisma.user.update({
+            where: { id: UserId },
+            data: {
+              WishListDevices: { push: productId },
+            },
+          });
+          res.status(200).json({ message: "Device added to wishlist", user });
+        }
+      } catch (error) {
+        console.error("Error adding device to wishlist:", error);
+        res.status(500).json({ error: "Failed to add device to wishlist." });
+      }
+    }
+  );
+
+  router.post(
+    "/UserDashboard/:UserId/WishList/Delete",
+    async (req: Request<{ UserId: string }>, res: Response): Promise<void> => {
+      try {
+        const { UserId } = req.params;
+        const { productId } = req.body;
+
+        const device = await prisma.device.findUnique({ where: { DeviceId: productId } });
+        const checkuser = await prisma.user.findUnique({ where: { id: UserId } });
+
+        if (!device) {
+          res.status(404).json({ message: "Device not found in the database." });
+          return;
+        }
+        if (!checkuser) {
+          res.status(404).json({ message: "User not found in the database." });
+          return;
+        }
+
+        if (checkuser.WishListDevices.includes(productId)) {
+          const newWishlist = checkuser.WishListDevices.filter((item) => item !== productId);
+          const user = await prisma.user.update({
+            where: { id: UserId },
+            data: {
+              WishListDevices: newWishlist,
+            },
+          });
+          res.status(200).json({ message: "Device removed from wishlist", user });
+        } else {
+          res.status(400).json({ message: "Device not found in the user's wishlist." });
+        }
+      } catch (error) {
+        console.error("Error removing device from wishlist:", error);
+        res.status(500).json({ error: "Failed to remove device from wishlist." });
+      }
+    }
+  );
+
+
+
+
+  router.post("/UserDashboard/:UserId/Cart/Add", async (req, res) => {
+    try {
+      const { UserId } = req.params;
+      const { DeviceId } = req.body;
+
+      // Check if the user exists
+      const user = await prisma.user.findUnique({ where: { id: UserId }, include: { CartDevices: true } });
+      if (!user) {
+        res.status(404).json({ error: "User not found." }); return
+      }
+      console.log('working');
+      // Check if the device is already in the cart
+      const existingCartItem = await prisma.cart.findUnique({
+        where: { DeviceId: DeviceId, userId: UserId },
+      });
+
+      let updatedCartItem;
+
+      if (existingCartItem) {
+        // If the device exists in the cart, increment the quantity
+        const updatedCartItem = await prisma.cart.update({
+          where:{DeviceId:existingCartItem.DeviceId},
+          data:{
+            Quantity:existingCartItem.Quantity + 1,
+          }
+        })
+        res.status(200).json(updatedCartItem);
+      } else {
+        // If the device is not in the cart, create a new entry
+        updatedCartItem = await prisma.cart.create({
+          data: {
+            DeviceId: DeviceId,
+            Quantity: 1,
+            userId: UserId,
+          },
+        });
+        res.status(200).json(updatedCartItem);
+      }
+
+
+
+    } catch (error) {
+      console.error("Error adding device to cart:", error);
+      res.status(500).json({ error: "Failed to add device to cart." }); return
+    }
+  });
+
+
+
+  router.post('/UserDashboard/:UserId/Cart/Remove', async (req: Request<{ UserId: string }>, res: Response): Promise<void> => {
+    try {
+      const { UserId } = req.params;
+      const { DeviceId } = req.body;
+      // Check if user exists and include CartDevices
+      const checkUser = await prisma.user.findUnique({
+        where: { id: UserId },
+        include: { CartDevices: true },
+      });
+      
+      // Find the device in the user's cart
+      const deviceInCart = checkUser?.CartDevices.find((item) => item.DeviceId === DeviceId);
+      if (deviceInCart) {
+        // Remove the device from the cart
+        await prisma.cart.delete({
+          where: { DeviceId: DeviceId },
+        });
+        const newCart = (await prisma.cart.findMany());
+        res.status(200).json({ message: "Device removed from the cart." ,newCart });
+      }
+
+
+    } catch (error) {
+      console.error("Error removing device from cart:", error);
+      res.status(500).json({ error: "Failed to remove device from cart." });
+    }
+  });
+
+  router.post('/UserDashboard/:UserId/Cart/Update',async (req , res)=>{
+    const {UserId} = req.params;
+    const {DeviceId, Quantity} = req.body;
+
+    const checkUser = await prisma.user.findUnique({
+      where:{id:UserId}
+    });
+    if(checkUser){
+      await prisma.cart.update({
+        where:{
+          DeviceId:DeviceId,
+          userId:UserId
+        },
+        data:{
+          Quantity:Quantity
+        }
+      });
+      const updatedCart = await prisma.cart.findMany();
+      console.log(updatedCart);
+      res.status(200).json(updatedCart);
+    };
+
+  })
 
 
   async function CheckToken(req: any, res: any, next: any) {

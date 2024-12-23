@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Heart, ShoppingCart } from "lucide-react";
 import { addToWishList, removeFromWishList } from '../state/features/wishSlice';
 import bg from '../assets/fabian-albert-wJ_clVY0K-A-unsplash.jpg';
+import { addToCart, removeFromCart } from "../state/features/cartSlice";
 
 export const ProductsPage: React.FC = () => {
     const { CategoryId, UserId } = useParams();
@@ -15,6 +16,8 @@ export const ProductsPage: React.FC = () => {
     const devices = useSelector((state: RootState) => state.device.devices);
     const categories = useSelector((state: RootState) => state.category.categories);
     const wishlist = useSelector((state:RootState)=> state.wishList.list);
+    const Cart = useSelector((state:RootState)=> state.cart.list);
+
 
     // Filter devices based on the selected category
     //@ts-ignore
@@ -32,6 +35,16 @@ export const ProductsPage: React.FC = () => {
             dispatch(removeFromWishList(deviceId));
         } else {
             dispatch(addToWishList(deviceId));
+        }
+    }
+
+    const toggleCart =(deviceId : string) => {
+        //@ts-ignore
+        const isInCart = Cart.some(item => item.DeviceId === deviceId && item.inCart);
+        if(isInCart){
+            dispatch(removeFromCart(deviceId));
+        } else {
+            dispatch(addToCart(deviceId));
         }
     }
 
@@ -54,7 +67,7 @@ export const ProductsPage: React.FC = () => {
                 {/* Category Selection */}
                 <div className="mb-12 text-center">
                     <div className="flex flex-wrap gap-3 justify-center">
-                        {categories.map((category) => (
+                        {categories.map((category : any) => (
                             <button
                             //@ts-ignore
                                 onClick={() => changeCategory(category.CategoryId)}
@@ -94,6 +107,7 @@ export const ProductsPage: React.FC = () => {
                                         <Heart
                                         //@ts-ignore
                                         className={`w-6 h-6 ${
+                                            //@ts-ignore
                                             wishlist.some((item) => item.DeviceId === device.DeviceId && item.inWishList)
                                               ? "fill-red-500 text-red-500"
                                               : "text-gray-400"
@@ -109,10 +123,10 @@ export const ProductsPage: React.FC = () => {
                                         <span className="text-xl font-bold text-black">${device.Price.toFixed(2)}</span>
                                         <button
                                             className="px-4 py-2 bg-black text-white rounded-full text-sm hover:bg-gray-800 transition-colors duration-300 flex items-center"
-                                            aria-label="Add to cart"
+                                            aria-label="Add to cart" onClick={()=>toggleCart(device.DeviceId)}
                                         >
                                             <ShoppingCart className="w-4 h-4 mr-2" />
-                                            Add to Cart
+                                            {Cart.some((item : any)=>item.DeviceId === device.DeviceId && item.inCart) ? "Added to Cart" : "Add to Cart"}
                                         </button>
                                     </div>
                                 </div>

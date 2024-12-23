@@ -37,8 +37,9 @@ export function UserLogin({ toggleForm }: UserLoginProps) {
         withCredentials: true
       });
       if (response) {
+        console.log(response.data);
         reset();
-        navigate('/UserDashboard');
+        navigate(`/UserDashboard/${response.data.user.id}`);
       }
     } catch (error) {
       console.error("Form submission error:", error);

@@ -3,14 +3,15 @@ import { RootState } from "../state/store";
 
 export const WishListDropDown = () => {
     const wishList = useSelector((state: RootState) => state.wishList.list);
-    const filteredList = wishList.filter((item) => item.inWishList === true);
+    const devices = useSelector((state:RootState)=>state.device.devices);
+    const wishListDevices = devices.filter((device) => wishList.includes(device.DeviceId));
 
     return (
         <div className="absolute -left-40 top-8">
             <div className="w-64 bg-black text-white rounded-lg shadow-lg overflow-hidden">
-                {filteredList.length > 0 ? (
+                {wishListDevices.length > 0 ? (
                     <ul className="divide-y divide-gray-600">
-                        {filteredList.map((item) => (
+                        {wishListDevices.map((item : any) => (
                             <li
                             //@ts-ignore
                                 key={item.DeviceId}

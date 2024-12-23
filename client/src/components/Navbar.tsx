@@ -3,11 +3,12 @@ import { NavLink, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../state/store';
 import logo from '../assets/blockchain.png';
-import cart from '../assets/shopping-cart.png';
+import cartimg from '../assets/shopping-cart.png';
 import search from '../assets/search.png';
 import dropdown from "../assets/down-arrow.png";
 import wishlist from '../assets/wishlist.png';
 import { WishListDropDown } from './WishListDropDown';
+import { CartDropDown } from './CartDropDown';
 
 
 interface UserNavbarProps {
@@ -20,13 +21,15 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isWishList, setIsWishList] = useState(false);
+    const [isCart, setIsCart] = useState(false);
+    const wishList = useSelector((state:RootState)=>state.wishList.list);
     const categories = useSelector((state: RootState) => state.category.categories);
-    const wishList = useSelector((state: RootState) => state.wishList.list);
-    const wishlistCount = wishList.filter(item => item.inWishList).length;
+    const cart = useSelector((state: RootState) => state.cart.list);
+    const cartCount = cart.length;
     const dropdownRef = useRef<HTMLDivElement>(null);
     const searchRef = useRef<HTMLDivElement>(null);
 
-
+    const wishlistCount = wishList.length;
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -122,9 +125,17 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                             isWishList && <WishListDropDown />
                         }
                     </NavLink>
-                    <NavLink to="/cart" className='p-2 hover:bg-ghost_white-900 rounded-full transition-colors duration-300'>
-                        <img src={cart} alt="Shopping cart" className='w-5 h-5' />
-                    </NavLink>
+                    <div className='p-2 hover:bg-ghost_white-900 rounded-full transition-colors duration-300 relative hover:cursor-pointer' onClick={() => setIsCart(!isCart)}>
+                        <img src={cartimg} alt="Shopping cart" className='w-5 h-5' />
+                        {cartCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-engineering_orange-700 text-ghost_white-500 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                {cartCount}
+                            </span>
+                        )}
+                         {
+                            isCart && <CartDropDown />
+                        }
+                    </div>
                     <div className="relative">
                         <div
                             className="relative"
