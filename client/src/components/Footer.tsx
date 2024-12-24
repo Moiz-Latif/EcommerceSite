@@ -3,7 +3,7 @@ import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'luci
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-white text-black font-sans py-16 px-4 sm:px-6 lg:px-8">
+    <footer className="bg-white text-black font-sans py-16 px-4 sm:px-6 lg:px-8 border-[1px] border-t-gray-200">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
         <div className="space-y-6">
           <h3 className="text-3xl font-bold">Gizmo</h3>

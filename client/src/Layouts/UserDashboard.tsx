@@ -8,6 +8,7 @@ import { RootState } from '../state/store';
 import { setDevices } from '../state/features/devicesSlice';
 import { useDispatch, useSelector } from "react-redux";
 import { setCart } from "../state/features/cartSlice";
+import { Footer } from "../components/Footer";
 
 
 
@@ -70,6 +71,7 @@ export const UserDashboard = () => {
     <div className="w-screen min-h-screen">
       <UserNavbar ImageURl={image} />
       <Outlet />
+      <Footer />
     </div>
   );
 };
