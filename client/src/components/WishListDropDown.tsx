@@ -16,6 +16,7 @@ export const WishListDropDown = () => {
                             //@ts-ignore
                                 key={item.DeviceId}
                                 className="flex items-center gap-4 px-4 py-2 hover:bg-gray-800 cursor-pointer"
+                                
                             >
                                 {/* Device Image */}
                                 <img

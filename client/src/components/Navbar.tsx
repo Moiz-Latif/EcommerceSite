@@ -77,7 +77,7 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                                         <li>
                                             <NavLink
                                                 key={category.CategoryId}
-                                                to={`/category/${category.CategoryId}`}
+                                                to={`Category/${category.CategoryId}`}
                                                 className="block px-4 py-2 text-sm text-ghost_white-900 hover:bg-ghost_white hover:text-black transition-colors duration-300"
                                             >
                                                 {category.CategoryName}

@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../state/store';
 import { ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import { addToWishlistAsync, deleteFromWishListAsync, setWishListAsync } from '../state/features/wishSlice';
-import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import {  useNavigate, useParams } from 'react-router-dom';
 import { addToCartAsync, setCartAsync, updateCartAsync } from '../state/features/cartSlice';
 
 export const FeaturedProducts: React.FC = () => {

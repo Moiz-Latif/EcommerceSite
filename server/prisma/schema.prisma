@@ -19,6 +19,7 @@ model User {
   WishListDevices String[]
   CartDevices     Cart[]
   transactions    Transaction[]
+  Review Review[]
 }
 
 model Cart {
@@ -46,6 +47,7 @@ model Device {
   status         Status        @default(PENDING)
   Price          Float // Price of the device
   transactions   Transaction[]
+  Reviews Review[]
 }
 
 model Transaction {
@@ -65,6 +67,19 @@ model Category {
   Image        String
   Description  String
   devices      Device[]
+}
+
+model Review {
+  ReviewId      String   @id @default(uuid()) // Unique identifier for the review
+  description   String   // The review content
+  rating        Float    // The rating given by the user
+  user          User     @relation(fields: [userId], references: [id]) // Relation to the user
+  userId        String   // Foreign key for the user
+  device        Device   @relation(fields: [deviceId], references: [DeviceId]) // Relation to the device
+  deviceId      String   // Foreign key for the device
+  createdAt     DateTime @default(now()) // Timestamp for when the review was created
+
+  @@unique([userId, deviceId]) // Ensure a user can review a device only once
 }
 
 enum Role {

@@ -154,16 +154,16 @@ export const CartDropDown: React.FC = () => {
                     <div className="space-y-2">
                         <button
                             // onClick={() => dispatch(clearCart())}
-                            className="w-full px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors duration-300 flex items-center justify-center"
+                            className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-300 flex items-center justify-center"
                         >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Clear Cart
                         </button>
-                        <button className="w-full px-4 py-2 bg-gray-700 text-white rounded-full hover:bg-gray-600 transition-colors duration-300 flex items-center justify-center">
+                        <button className="w-full px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition-colors duration-300 flex items-center justify-center">
                             <ShoppingCart className="w-4 h-4 mr-2" />
                             View Cart
                         </button>
-                        <button className="w-full px-4 py-2 bg-white text-black rounded-full hover:bg-gray-200 transition-colors duration-300 flex items-center justify-center">
+                        <button className="w-full px-4 py-2 bg-white text-black rounded-md hover:bg-gray-200 transition-colors duration-300 flex items-center justify-center">
                             <CreditCard className="w-4 h-4 mr-2" />
                             Proceed to Checkout
                         </button>

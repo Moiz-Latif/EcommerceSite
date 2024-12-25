@@ -3,9 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../state/store";
 import { useParams, useNavigate } from "react-router-dom";
 import { Heart, ShoppingCart } from "lucide-react";
-import { addToWishList, removeFromWishList } from '../state/features/wishSlice';
+import { addToWishlistAsync, deleteFromWishListAsync } from '../state/features/wishSlice';
 import bg from '../assets/fabian-albert-wJ_clVY0K-A-unsplash.jpg';
-import { addToCart, removeFromCart } from "../state/features/cartSlice";
+import { addToCartAsync, updateCartAsync } from "../state/features/cartSlice";
 
 export const ProductsPage: React.FC = () => {
     const { CategoryId, UserId } = useParams();
@@ -16,8 +16,8 @@ export const ProductsPage: React.FC = () => {
     const devices = useSelector((state: RootState) => state.device.devices);
     const categories = useSelector((state: RootState) => state.category.categories);
     const wishlist = useSelector((state:RootState)=> state.wishList.list);
-    const Cart = useSelector((state:RootState)=> state.cart.list);
-
+    const cart = useSelector((state:RootState)=> state.cart.list);
+    console.log(wishlist);
 
     // Filter devices based on the selected category
     //@ts-ignore
@@ -28,25 +28,31 @@ export const ProductsPage: React.FC = () => {
         navigate(`/UserDashboard/${UserId}/Category/${categoryId}`);
     };
 
-    const toggleWishList =(deviceId : string) => {
-        //@ts-ignore
-        const isInWishlist = wishlist.some(item => item.DeviceId === deviceId && item.inWishList);
-        if(isInWishlist){
-            dispatch(removeFromWishList(deviceId));
-        } else {
-            dispatch(addToWishList(deviceId));
-        }
+  const toggleWishlist = (deviceId: string) => {
+    const isInWishlist = wishlist.some(item => item === deviceId);
+    if (isInWishlist) {
+      //@ts-ignore
+      dispatch(deleteFromWishListAsync({ productId: deviceId, UserId: UserId }));
+    } else {
+      //@ts-ignore
+      dispatch(addToWishlistAsync({ productId: deviceId, UserId: UserId }));
+    }
+  };
+
+  const toggleCart = (deviceId: string) => {
+    const CartItem = cart.find((item) => item.DeviceId === deviceId);
+    if (CartItem) {
+      const Quantity = CartItem.Quantity + 1;
+
+      //@ts-ignore
+      dispatch(updateCartAsync({ UserId, Quantity: Quantity, DeviceId: deviceId }));
+    } else {
+      //@ts-ignore
+      dispatch(addToCartAsync({ UserId, Quantity: 1, DeviceId: deviceId }));
     }
 
-    const toggleCart =(deviceId : string) => {
-        //@ts-ignore
-        const isInCart = Cart.some(item => item.DeviceId === deviceId && item.inCart);
-        if(isInCart){
-            dispatch(removeFromCart(deviceId));
-        } else {
-            dispatch(addToCart(deviceId));
-        }
-    }
+
+  };
 
     return (
         <div className="font-roboto">
@@ -91,7 +97,8 @@ export const ProductsPage: React.FC = () => {
                         {filteredDevices.map((device) => (
                             <div
                                 key={device.DeviceId}
-                                className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105 flex flex-col justify-between"
+                                className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105 flex flex-col justify-between hover:cursor-pointer"
+                                onClick={()=>navigate(`/UserDashboard/${UserId}/Device/${device.DeviceId}`)}
                             >
                                 <div className="relative">
                                     <img
@@ -100,7 +107,7 @@ export const ProductsPage: React.FC = () => {
                                         className="w-full h-48 object-contain"
                                     />
                                     <button
-                                        onClick={()=>toggleWishList(device.DeviceId)}
+                                        onClick={()=>toggleWishlist(device.DeviceId)}
                                         className="absolute top-4 right-4 z-30 p-2 rounded-full bg-white shadow-md transition-colors duration-300"
 
                                     >
@@ -108,7 +115,7 @@ export const ProductsPage: React.FC = () => {
                                         //@ts-ignore
                                         className={`w-6 h-6 ${
                                             //@ts-ignore
-                                            wishlist.some((item) => item.DeviceId === device.DeviceId && item.inWishList)
+                                            wishlist.some((item) => item === device.DeviceId)
                                               ? "fill-red-500 text-red-500"
                                               : "text-gray-400"
                                         }`}
@@ -126,7 +133,7 @@ export const ProductsPage: React.FC = () => {
                                             aria-label="Add to cart" onClick={()=>toggleCart(device.DeviceId)}
                                         >
                                             <ShoppingCart className="w-4 h-4 mr-2" />
-                                            {Cart.some((item : any)=>item.DeviceId === device.DeviceId && item.inCart) ? "Added to Cart" : "Add to Cart"}
+                                            Add to Cart
                                         </button>
                                     </div>
                                 </div>
