@@ -114,6 +114,29 @@ async function main() {
     }
   });
 
+  router.get('/UserDashboard/:UserId/Device/:DeviceId/Get', async (req, res) => {
+    const { UserId, DeviceId } = req.params;
+    const User = await prisma.user.findUnique({
+      where: { id: UserId }
+    });
+    if (User) {
+      const getReview = await prisma.review.findUnique({
+        where: {
+          userId_deviceId: {
+            userId: UserId,       // Replace with the actual userId
+            deviceId: DeviceId,   // Replace with the actual deviceId
+          },
+        },
+      }); 
+      if (getReview) {
+        res.status(200).json({ getReview, UserImg: User.img, UserUsername: User.username });
+      } else {
+        res.status(200).json({UserImg:User.img, UserUsername:User.username})
+      }
+    }
+
+  });
+
 
 
   router.post('/AdminLogin', CheckToken, async (req, res) => {
@@ -439,9 +462,9 @@ async function main() {
       if (existingCartItem) {
         // If the device exists in the cart, increment the quantity
         const updatedCartItem = await prisma.cart.update({
-          where:{DeviceId:existingCartItem.DeviceId},
-          data:{
-            Quantity:existingCartItem.Quantity + 1,
+          where: { DeviceId: existingCartItem.DeviceId },
+          data: {
+            Quantity: existingCartItem.Quantity + 1,
           }
         })
         res.status(200).json(updatedCartItem);
@@ -476,7 +499,7 @@ async function main() {
         where: { id: UserId },
         include: { CartDevices: true },
       });
-      
+
       // Find the device in the user's cart
       const deviceInCart = checkUser?.CartDevices.find((item) => item.DeviceId === DeviceId);
       if (deviceInCart) {
@@ -485,7 +508,7 @@ async function main() {
           where: { DeviceId: DeviceId },
         });
         const newCart = (await prisma.cart.findMany());
-        res.status(200).json({ message: "Device removed from the cart." ,newCart });
+        res.status(200).json({ message: "Device removed from the cart.", newCart });
       }
 
 
@@ -495,21 +518,21 @@ async function main() {
     }
   });
 
-  router.post('/UserDashboard/:UserId/Cart/Update',async (req , res)=>{
-    const {UserId} = req.params;
-    const {DeviceId, Quantity} = req.body;
+  router.post('/UserDashboard/:UserId/Cart/Update', async (req, res) => {
+    const { UserId } = req.params;
+    const { DeviceId, Quantity } = req.body;
 
     const checkUser = await prisma.user.findUnique({
-      where:{id:UserId}
+      where: { id: UserId }
     });
-    if(checkUser){
+    if (checkUser) {
       await prisma.cart.update({
-        where:{
-          DeviceId:DeviceId,
-          userId:UserId
+        where: {
+          DeviceId: DeviceId,
+          userId: UserId
         },
-        data:{
-          Quantity:Quantity
+        data: {
+          Quantity: Quantity
         }
       });
       const updatedCart = await prisma.cart.findMany();
@@ -517,7 +540,54 @@ async function main() {
       res.status(200).json(updatedCart);
     };
 
-  })
+  });
+
+  router.post('/UserDashboard/:UserId/Device/:DeviceId/Create', async (req, res) => {
+    const { UserId, DeviceId } = req.params;
+    const { rating, review, date } = req.body;
+    const checkReview = await prisma.review.findUnique({
+      where: {
+        userId_deviceId: {
+          userId: UserId,
+          deviceId: DeviceId
+        }
+      }
+    });
+    if (checkReview) {
+
+      const updateReview = await prisma.review.update({
+        where: {
+          userId_deviceId: {
+            userId: UserId,
+            deviceId: DeviceId
+          }
+        },
+        data: {
+          rating: rating,
+          description: review,
+        }
+      });
+
+      res.status(200).json(updateReview);
+    } else {
+      const Createreview = await prisma.review.create({
+        data: {
+          rating: rating,
+          description: review,
+          user: { connect: { id: UserId } },
+          device: { connect: { DeviceId: DeviceId } }
+        }
+      });
+      if (Createreview) {
+        console.log(Createreview);
+        res.status(200).json(Createreview);
+      } else {
+        res.status(500);
+      }
+    }
+
+  });
+
 
 
   async function CheckToken(req: any, res: any, next: any) {

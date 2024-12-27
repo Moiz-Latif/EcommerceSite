@@ -12,7 +12,6 @@ export const CartDropDown: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const Cart = useSelector((state: RootState) => state.cart.list);
     const Devices = useSelector((state: RootState) => state.device.devices);
-    console.log(Cart);
     const devicesInCart = Cart.map(cartItem => {
         const device = Devices.find(device => device.DeviceId === cartItem.DeviceId);
         return { ...device, quantity: cartItem.Quantity };

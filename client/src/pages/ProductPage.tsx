@@ -1,23 +1,58 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../state/store";
 import { useParams } from "react-router-dom";
 import { updateCartAsync } from "../state/features/cartSlice";
-import { ChevronLeft, ChevronRight, Plus, Minus, ShoppingCart, Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Minus, ShoppingCart, Star, ChevronDown, ChevronUp, Edit, Trash2 } from 'lucide-react';
+import axios from "axios";
 
 export const ProductPage: React.FC = () => {
-    const { DeviceId } = useParams();
+    const { DeviceId, UserId } = useParams();
     const devices = useSelector((state: RootState) => state.device.devices);
     const Cart = useSelector((state: RootState) => state.cart.list);
     const device = devices.find((d) => d.DeviceId === DeviceId);
     const cart = device ? Cart.find((item) => item.DeviceId === device.DeviceId) : undefined;
     const dispatch = useDispatch();
-    const { UserId } = useParams();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [animationDirection, setAnimationDirection] = useState<'left' | 'right' | null>(null);
     const [isSpecsOpen, setIsSpecsOpen] = useState(false);
     const [userRating, setUserRating] = useState(0);
     const [userReview, setUserReview] = useState("");
+    const [existingReview, setExistingReview] = useState<{ rating: number; description: string, date: string } | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [UserData, setUserData] = useState<{ UserImg: string, Username: string } | null>(null);
+
+
+    useEffect(() => {
+        if (DeviceId && UserId) {
+            async function getReviewData() {
+                try {
+                    const response = await axios.get(
+                        `http://localhost:3000/UserDashboard/${UserId}/Device/${DeviceId}/Get`
+                    );
+                    if (response && response.data) {
+                        setUserData({ UserImg: response.data.UserImg, Username: response.data.UserUsername });
+                        console.log(response.data.UserImg)
+                        const dateStr = response.data.getReview.createdAt;
+                        const dateObj = new Date(dateStr);
+                        const options = { year: '2-digit' as const, month: '2-digit' as const, day: '2-digit' as const };
+                        const formattedDate = dateObj.toLocaleDateString('en-GB', options).replace(/-/g, '/');
+                        setExistingReview({
+                            rating: response.data.getReview.rating,
+                            description: response.data.getReview.description,
+                            date: formattedDate
+                        });
+                        setUserRating(response.data.getReview.rating);
+                        setUserReview(response.data.getReview.description);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch review data:", error);
+                }
+            }
+            getReviewData();
+        }
+    }, [DeviceId, UserId]);
+
 
     if (!device) {
         return <div className="text-center py-10 text-gray-700">Device not found</div>;
@@ -68,17 +103,44 @@ export const ProductPage: React.FC = () => {
         { id: 3, name: "Mike Johnson", rating: 3, comment: "Decent product, but not as expected.", date: "2023-05-25" },
     ];
 
-    const handleSubmitReview = (e: React.FormEvent) => {
+    const handleSubmitReview = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Here you would typically send the review to your backend
-        console.log("Submitting review:", { rating: userRating, comment: userReview });
-        // Reset form
-        setUserRating(0);
-        setUserReview("");
+        try {
+
+            await axios.post(`http://localhost:3000/UserDashboard/${UserId}/Device/${device.DeviceId}/Create`, {
+                rating: userRating,
+                review: userReview,
+                date: Date()
+            });
+
+            setExistingReview({ rating: userRating, description: userReview, date: Date() });
+            setIsEditing(false);
+        } catch (error) {
+            console.error("Failed to submit review:", error);
+        }
     };
 
+    const handleEditReview = () => {
+        setIsEditing(true);
+    };
+
+    const handleDeleteReview = async () => {
+        try {
+            await axios.delete(`http://localhost:3000/UserDashboard/${UserId}/Device/${device.DeviceId}/Delete`);
+            setExistingReview(null);
+            setUserRating(0);
+            setUserReview("");
+        } catch (error) {
+            console.error("Failed to delete review:", error);
+        }
+    };
+
+
+
+
+
     return (
-        <div className="bg-white text-black min-h-screen font-roboto pt-20 px-4 sm:px-6 lg:px-8">
+        <div className="bg-white text-black min-h-screen font-roboto pt-20 px-4 sm:px-6 lg:pl-16 lg:pr-20">
             <div className="max-w-7xl mx-auto py-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Image Gallery Card */}
@@ -226,96 +288,115 @@ export const ProductPage: React.FC = () => {
                     )}
                 </div>
             </div>
-            <div className="w-full my-12 border-[1px] border-gray-200 rounded-3xl px-5 shadow-lg bg-ghost_white-800">
-                <div className="w-full my-12">
-                    <h1 className="text-4xl font-bold mb-8 text-center">Customer Reviews</h1>
-                    <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Add a review form */}
-                        <div className="lg:w-1/2 p-6 border border-gray-700 rounded-xl bg-white">
-                            <h2 className="text-3xl font-semibold mb-6 text-black">Write a Review</h2>
-                            <form onSubmit={handleSubmitReview}>
-                                {/* Star Rating */}
-                                <div className="mb-6">
-                                    <label className="block text-md font-medium text-black mb-2">
-                                        Your Rating <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="flex space-x-1">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <Star
-                                                key={star}
-                                                size={28}
-                                                className={`cursor-pointer transition-all ${star <= userRating ? "text-yellow-400 scale-110" : "text-gray-600"
-                                                    }`}
-                                                fill={star <= userRating ? "currentColor" : "none"}
-                                                onClick={() => setUserRating(star)}
-                                                onMouseEnter={() => setUserRating(star)}
-                                                onMouseLeave={() => setUserRating(userRating)}
-                                                aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
-                                            />
-                                        ))}
+            <div className="bg-white text-black min-h-screen font-roboto pt-20 ">
+                <div className="w-full my-12 border-[1px] border-gray-200 rounded-3xl px-5 shadow-lg bg-ghost_white-800">
+                    <div className="w-full my-12">
+                        <h1 className="text-4xl font-bold mb-8 text-center">Customer Reviews</h1>
+                        <div className="flex flex-col lg:flex-row gap-8">
+                            {/* Add/Edit a review form */}
+                            <div className="lg:w-1/2 p-8 border border-gray-200 rounded-2xl bg-white shadow-lg">
+                                <h2 className="text-3xl font-bold mb-6 text-gray-800 border-b pb-4">
+                                    {existingReview && !isEditing ? "Your Review" : (isEditing ? "Edit Your Review" : "Write a Review")}
+                                </h2>
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star
+                                                    key={star}
+                                                    size={24}
+                                                    className={`cursor-pointer transition-all ${star <= (isEditing ? userRating : (existingReview?.rating || 0)) ? "text-yellow-400" : "text-gray-300 hover:text-yellow-200"}`}
+                                                    fill="currentColor"
+                                                    onClick={() => setUserRating(star)}
+                                                    onMouseEnter={() => !existingReview && setUserRating(star)}
+                                                    onMouseLeave={() => !existingReview && setUserRating(userRating)}
+                                                />
+                                            ))}
+                                        </div>
+                                        <p className="text-sm text-gray-500">{existingReview?.date || new Date().toISOString().split('T')[0]}</p>
                                     </div>
-                                    {userRating === 0 && (
-                                        <p className="text-sm text-red-500 mt-2">Please select a rating.</p>
+                                    {(isEditing || !existingReview) ? (
+                                        <textarea
+                                            rows={6}
+                                            className="w-full px-4 py-3 text-gray-700 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            value={userReview}
+                                            onChange={(e) => setUserReview(e.target.value)}
+                                            placeholder="Share your thoughts about the product..."
+                                            required
+                                        ></textarea>
+                                    ) : (
+                                        <p className="text-gray-700 text-lg leading-relaxed">{existingReview.description}</p>
                                     )}
+                                    <div className="flex items-center gap-4 py-4 border-t border-gray-100">
+                                        <img src={UserData?.UserImg} alt={UserData?.Username} className="w-12 h-12 rounded-full object-cover" />
+                                        <div>
+                                            <h3 className="font-semibold text-gray-800">{UserData?.Username}</h3>
+                                            <p className="text-sm text-gray-500">Verified Buyer</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex space-x-4 pt-4">
+                                        {existingReview && !isEditing ? (
+                                            <>
+                                                <button
+                                                    onClick={handleEditReview}
+                                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all flex items-center justify-center"
+                                                >
+                                                    <Edit size={18} className="mr-2" />
+                                                    Edit Review
+                                                </button>
+                                                <button
+                                                    onClick={handleDeleteReview}
+                                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all flex items-center justify-center"
+                                                >
+                                                    <Trash2 size={18} className="mr-2" />
+                                                    Delete Review
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={handleSubmitReview}
+                                                className="w-full px-6 py-3 bg-blue-600 text-lg font-semibold text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all flex items-center justify-center"
+                                            >
+                                                <Star size={20} className="mr-2" />
+                                                {isEditing ? "Update Review" : "Submit Review"}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
+                            </div>
 
-                                {/* Review Text */}
-                                <div className="mb-6">
-                                    <label htmlFor="review" className="block text-md font-medium text-black mb-2">
-                                        Your Review <span className="text-red-500">*</span>
-                                    </label>
-                                    <textarea
-                                        id="review"
-                                        rows={4}
-                                        className="w-full px-2 py-3 text-black bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-black "
-                                        value={userReview}
-                                        onChange={(e) => setUserReview(e.target.value)}
-                                        placeholder="Write your review here..."
-                                        required
-                                        aria-required="true"
-                                    ></textarea>
-                                </div>
-
-                                {/* Submit Button */}
-                                <button
-                                    type="submit"
-                                    className="w-full px-6 py-3 bg-black text-lg tracking-wide text-white rounded-lg shadow-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 focus:ring-offset-white transition-all"
-                                >
-                                    Submit Review
-                                </button>
-                            </form>
-                        </div>
-
-                        {/* Display customer reviews */}
-                        <div className="lg:w-1/2 p-6 border border-gray-700 rounded-xl bg-white">
-                            <h2 className="text-3xl font-semibold mb-6 text-black">Recent Reviews</h2>
-                            <div className="space-y-6 max-h-[400px] overflow-y-auto pr-4">
-                                {customerReviews.map((review) => (
-                                    <div key={review.id} className="p-4 bg-gray-100 rounded-lg shadow">
-                                        <div className="flex items-center mb-2">
-                                            <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center mr-3">
-                                                {/* <User size={20} className="text-gray-300" /> */}
-                                            </div>
-                                            <div>
-                                                <span className="font-semibold text-lg text-black">{review.name}</span>
-                                                <div className="flex items-center">
-                                                    <div className="flex mr-2">
-                                                        {[1, 2, 3, 4, 5].map((star) => (
-                                                            <Star
-                                                                key={star}
-                                                                size={16}
-                                                                className={star <= review.rating ? "text-yellow-400" : "text-gray-600"}
-                                                                fill="currentColor"
-                                                            />
-                                                        ))}
+                            {/* Display customer reviews */}
+                            <div className="lg:w-1/2 p-6 border border-gray-300 rounded-xl bg-white">
+                                <h2 className="text-3xl font-semibold mb-6">Recent Reviews</h2>
+                                <div className="space-y-6 max-h-[400px] overflow-y-auto pr-4">
+                                    {customerReviews.map((review) => (
+                                        <div key={review.id} className="p-4 bg-gray-100 rounded-lg shadow">
+                                            <div className="flex items-center mb-2">
+                                                <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center mr-3">
+                                                    {/* User icon can be added here */}
+                                                </div>
+                                                <div>
+                                                    <span className="font-semibold text-lg text-black">{review.name}</span>
+                                                    <div className="">
+                                                        <div className="flex mr-2">
+                                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                                <Star
+                                                                    key={star}
+                                                                    size={16}
+                                                                    className={star <= review.rating ? "text-yellow-400" : "text-gray-600"}
+                                                                    fill="currentColor"
+                                                                />
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                    <span className="text-sm text-gray-400">{review.date}</span>
                                                 </div>
                                             </div>
+                                            <p className="text-black mt-2">{review.comment}</p>
+                                            <h1 className="text-sm text-gray-400">{review.date}</h1>
                                         </div>
-                                        <p className="text-black mt-2">{review.comment}</p>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>

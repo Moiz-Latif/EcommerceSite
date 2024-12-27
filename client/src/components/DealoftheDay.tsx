@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Clock } from 'lucide-react';
+import { Clock, ShoppingCart } from 'lucide-react';
 import { useSelector } from "react-redux";
 import { RootState } from "../state/store";
+import { motion } from "framer-motion";
 
-interface Device {
-  DeviceId: string;
-  DeviceName: string;
-  Price: number;
-  Images: string[];
-  Brand: string;
-  Model: string;
-}
+
 
 interface TimeLeft {
   days: number;
@@ -58,52 +52,87 @@ export const DealOfTheDay: React.FC = () => {
   if (!dealDevice) return null;
 
   return (
-    <section className="w-full min-h-screen bg-white text-black px-6 py-12 flex flex-col items-center justify-center relative overflow-hidden">
-      <div className="max-w-lg w-full text-center relative">
-        <p className="text-[370px] leading-none text-gray-200 opacity-30 absolute top-[50%] -left-10 transform -translate-x-1/2 -translate-y-1/2 w-full text-center">
-          {`${dealDevice.Brand}`}
-        </p>
-
-        <h2 className="text-xl font-semibold tracking-wider relative z-20">LIMITED TIME</h2>
-        <h1 className="text-5xl font-bold mb-2 relative z-20">SUPER OFFER</h1>
-        <h3 className="text-xl font-bold text-stone-700 relative z-30">The Deal You Can't Miss</h3>
-
-        <img
-          src={dealDevice.Images[1]}
-          alt={dealDevice.DeviceName}
-          className="w-64 h-auto mx-auto relative z-20 bg-none rounded-lg transition-transform duration-300 transform hover:scale-110"
-        />
-
-        <h3 className="text-2xl font-bold mb-2 relative z-20 font-roboto tracking-wide">{dealDevice.DeviceName}</h3>
-
-        <div className="flex flex-col items-center justify-center mb-6 relative z-30">
-          <div className="flex items-center justify-center space-x-4 mb-2">
-            <span className="text-5xl font-bold text-black">${discountedPrice.toFixed(2)}</span>
-            <span className="text-2xl text-gray-400 line-through">${dealDevice.Price.toFixed(2)}</span>
+    <motion.section 
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -50 }}
+      transition={{ duration: 0.5 }}
+      className="w-full h-screen bg-white text-black flex items-center justify-center overflow-hidden"
+    >
+      <div className="max-w-6xl w-full h-full flex flex-col md:flex-row items-center justify-center relative px-6">
+        <motion.div 
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left mb-8 md:mb-0"
+        >
+          <h2 className="text-xl font-semibold tracking-wider text-gray-600 mb-2">LIMITED TIME OFFER</h2>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4">SUPER DEAL</h1>
+          <h3 className="text-2xl font-bold text-gray-800 mb-6">The Deal You Can't Miss</h3>
+          
+          <div className="flex flex-col items-center md:items-start mb-6">
+            <div className="flex items-center space-x-4 mb-2">
+              <span className="text-5xl md:text-6xl font-bold text-black">${discountedPrice.toFixed(2)}</span>
+              <span className="text-2xl md:text-3xl text-gray-400 line-through">${dealDevice.Price.toFixed(2)}</span>
+            </div>
+            <div className="bg-red-500 text-white text-sm font-bold px-4 py-1 rounded-full transform -rotate-3 shadow-lg">
+              20% OFF
+            </div>
           </div>
-          <div className="bg-red-500 text-white text-sm font-bold px-4 py-1 rounded-full transform -rotate-3 shadow-lg">
-            20% OFF
-          </div>
-        </div>
 
-        <div className="flex items-center justify-center space-x-2 text-base mb-8 relative z-20">
-          <Clock className="w-5 h-5 text-white" />
-          <div className="flex space-x-6 bg-white p-4 rounded-lg shadow-lg">
-            {Object.entries(timeLeft).map(([unit, value]) => (
-              <div key={unit} className="flex flex-col items-center">
-                <span className="text-3xl font-extrabold text-red-700">{formatTime(value)}</span>
-                <span className="text-sm font-medium uppercase tracking-wider text-gray-600">{unit}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+          <motion.div 
+            className="flex items-center space-x-2 text-base mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            <Clock className="w-5 h-5 text-gray-600" />
+            <div className="flex space-x-4 bg-gray-100 p-4 rounded-lg shadow-inner">
+              {Object.entries(timeLeft).map(([unit, value]) => (
+                <div key={unit} className="flex flex-col items-center">
+                  <span className="text-2xl md:text-3xl font-extrabold text-gray-800">{formatTime(value)}</span>
+                  <span className="text-xs md:text-sm font-medium uppercase tracking-wider text-gray-600">{unit}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
 
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-full md:w-auto px-8 py-3 bg-black text-white text-xl font-bold rounded-lg hover:bg-gray-800 transition-all duration-300 flex items-center justify-center space-x-2"
+          >
+            <ShoppingCart className="w-6 h-6" />
+            <span>GRAB THE DEAL</span>
+          </motion.button>
+        </motion.div>
 
-        <button className="w-full px-6 py-3 bg-black text-white text-xl font-bold rounded-lg hover:bg-gray-800 transition-all duration-300 active:opacity-75 relative z-20">
-          GRAB THE DEAL
-        </button>
+        <motion.div 
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="w-full md:w-1/2 flex items-center justify-center relative"
+        >
+          <div className="absolute inset-0 bg-gray-100 rounded-full transform scale-90 opacity-50"></div>
+          <motion.img
+            src={dealDevice.Images[1]}
+            alt={dealDevice.DeviceName}
+            className="w-full max-w-md h-auto relative z-10 "
+            initial={{ rotate: -5 }}
+            animate={{ rotate: 5 }}
+            transition={{ duration: 6, repeat: Infinity, repeatType: "reverse" }}
+          />
+          <motion.p 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[250px] font-bold text-gray-200 opacity-20 pointer-events-none select-none"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 0.2, scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+          >
+            {dealDevice.Brand}
+          </motion.p>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
