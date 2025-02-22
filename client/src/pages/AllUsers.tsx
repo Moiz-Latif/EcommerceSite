@@ -1,20 +1,26 @@
-'use client'
-
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const AllUsers = () => {
     const [UserData, setUserData] = useState();
-
+    const navigate = useNavigate();
     useEffect(() => {
         async function getUsers() {
-            const response = await axios.get('http://localhost:3000/AdminDashboard/Users');
-            if (response && response.data) {
+            try {
+                const response = await axios.get(
+                    "http://localhost:3000/AdminDashboard/Users",
+                    { withCredentials: true }
+                );
                 setUserData(response.data);
+            } catch (error: any) {
+                console.error("Error fetching users:", error.response?.data?.message);
+                navigate('/AdminDashboard/LoginPopup');
             }
         }
         getUsers();
     }, []);
+    
 
     //@ts-ignore
     const Data = UserData?.map((user, index) => {

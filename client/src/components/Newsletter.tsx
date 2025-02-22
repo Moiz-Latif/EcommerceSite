@@ -71,7 +71,7 @@ export const Features: React.FC = () => {
                 <div className="text-3xl mr-4 text-black group-hover:scale-110 transition-transform duration-300">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-semibold text-black group-hover:text-blue-600 transition-colors duration-300">{feature.title}</h3>
+                <h3 className="text-xl font-semibold text-black group-hover:scale-105 transition-all duration-300">{feature.title}</h3>
               </div>
               <p className="text-gray-600 group-hover:text-black transition-colors duration-300">
                 {feature.description}
@@ -87,7 +87,7 @@ export const Features: React.FC = () => {
         >
           <a 
             href="#" 
-            className="inline-block bg-black text-white font-semibold py-3 px-10 rounded-full hover:bg-blue-600 transition-colors duration-300 transform hover:scale-105"
+            className="inline-block bg-black text-white font-semibold py-3 px-10 rounded-full transition-all duration-300 transform hover:scale-105 hover:ring-2 hover:ring-offset-2 hover:tracking-wide hover:ring-black"
           >
             Join the Gizmo Family
           </a>

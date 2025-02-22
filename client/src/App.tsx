@@ -14,16 +14,30 @@ import { store } from "./state/store"
 import { ProductsPage } from "./pages/ProductsPage"
 import { LandingPage } from "./pages/LandingPage"
 import { ProductPage } from "./pages/ProductPage"
+import { CheckoutPage } from "./pages/CheckoutPage"
+import AdminLandingPage from "./pages/AdminLandingPage"
 
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Login />,
+    element: <UserDashboard />,
     children: [
       {
-        path: '/AdminLogin',
-        element: <AdminLogin />
+        index: true,
+        element: <LandingPage />
+      },
+      {
+        path: 'Category/:CategoryId',
+        element: <ProductsPage/>
+      },
+      {
+        path: 'Device/:DeviceId',
+        element: <ProductPage/>
+      },
+      {
+        path:"Checkout",
+        element: <CheckoutPage/>
       }
     ]
   },
@@ -42,6 +56,10 @@ const router = createBrowserRouter([
       {
         path: 'Device/:DeviceId',
         element: <ProductPage/>
+      },
+      {
+        path:"Checkout",
+        element: <CheckoutPage/>
       }
     ]
   },
@@ -49,6 +67,11 @@ const router = createBrowserRouter([
     path: 'AdminDashboard',
     element: <AdminDashboard />,
     children: [
+      {
+        index:true,
+        element:<AdminLandingPage/>
+      },
+
       {
         path: 'Devices',
         element: <AdminDevices />,
@@ -72,7 +95,7 @@ const router = createBrowserRouter([
       {
         path: 'categories',
         element: <CategoriesPage />
-      }
+      },
     ]
   }
 

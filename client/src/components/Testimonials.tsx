@@ -56,24 +56,3 @@ export const Testimonials: React.FC = () => {
     </section>
   );
 };
-
-// Add this to your global CSS or a separate animation file
-const globalStyles = `
-@keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-.animate-scroll {
-  animation: scroll 30s linear infinite;
-}
-`;
-
-// Add the global styles to the document
-const styleElement = document.createElement("style");
-styleElement.innerHTML = globalStyles;
-document.head.appendChild(styleElement);

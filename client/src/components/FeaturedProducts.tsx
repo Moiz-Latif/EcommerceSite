@@ -1,17 +1,21 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../state/store';
 import { ChevronLeft, ChevronRight, Heart, ShoppingBag } from 'lucide-react';
 import { addToWishlistAsync, deleteFromWishListAsync, setWishListAsync } from '../state/features/wishSlice';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addToCartAsync, setCartAsync, updateCartAsync } from '../state/features/cartSlice';
+import { addtoLocalStorage, removefromLocalStorage, updateLocalStorage } from '../state/features/localwishSlice';
+import { addCartItemtoLocalStorage, updateLocalCart, updateLocalCartItem } from '../state/features/localcartSlice';
 
 export const FeaturedProducts: React.FC = () => {
   const { UserId } = useParams();
   const dispatch = useDispatch();
   const allDevices = useSelector((state: RootState) => state.device.devices);
   const wishlist = useSelector((state: RootState) => state.wishList.list);
+  const localWishList = useSelector((state: RootState) => state.localWishList.list);
   const cart = useSelector((state: RootState) => state.cart.list);
+  const localCart = useSelector((state: RootState) => state.localCart.list);
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [isAnimating, setIsAnimating] = React.useState(false);
   const navigate = useNavigate();
@@ -44,24 +48,51 @@ export const FeaturedProducts: React.FC = () => {
   };
 
   const toggleWishlist = (deviceId: string) => {
-    const isInWishlist = wishlist.some(item => item === deviceId);
-    if (isInWishlist) {
-      //@ts-ignore
-      dispatch(deleteFromWishListAsync({ productId: deviceId, UserId }));
+    const isInReduxWishlist = wishlist.some(item => item === deviceId);
+    const isInLocalReduxWishlist = localWishList.some(item => item === deviceId);
+    if (UserId == undefined) {
+      if (isInLocalReduxWishlist) {
+        //@ts-ignore
+        dispatch(removefromLocalStorage(deviceId));
+        dispatch(updateLocalStorage())
+      } else {
+        //@ts-ignore
+        dispatch(addtoLocalStorage(deviceId));
+        dispatch(updateLocalStorage());
+      }
     } else {
-      //@ts-ignore
-      dispatch(addToWishlistAsync({ productId: deviceId, UserId }));
+      if (isInReduxWishlist) {
+        //@ts-ignore
+        dispatch(deleteFromWishListAsync({ productId: deviceId, UserId }));
+      } else {
+        //@ts-ignore
+        dispatch(addToWishlistAsync({ productId: deviceId, UserId }));
+      }
     }
-  };
 
+  };
   const toggleCart = (deviceId: string) => {
-    const cartItem = cart.find((item) => item.DeviceId === deviceId);
-    if (cartItem) {
-      //@ts-ignore
-      dispatch(updateCartAsync({ UserId, Quantity: cartItem.Quantity + 1, DeviceId: deviceId }));
+    if (UserId == undefined) {
+      const cartItem = localCart.find((item) => item.deviceId === deviceId);
+      if (cartItem) {
+        //@ts-ignore
+        dispatch(updateLocalCartItem({ deviceId: deviceId, quantity: cartItem.quantity }))
+        dispatch(updateLocalCart());
+      } else {
+        //@ts-ignore
+        dispatch(addCartItemtoLocalStorage({ deviceId: deviceId }))
+        dispatch(updateLocalCart());
+
+      }
     } else {
-      //@ts-ignore
-      dispatch(addToCartAsync({ UserId, Quantity: 1, DeviceId: deviceId }));
+      const cartItem = cart.find((item) => item.DeviceId === deviceId);
+      if (cartItem) {
+        //@ts-ignore
+        dispatch(updateCartAsync({ UserId, Quantity: cartItem.Quantity + 1, DeviceId: deviceId }));
+      } else {
+        //@ts-ignore
+        dispatch(addToCartAsync({ UserId, Quantity: 1, DeviceId: deviceId }));
+      }
     }
   };
 
@@ -103,9 +134,9 @@ export const FeaturedProducts: React.FC = () => {
                         className="absolute top-4 right-4 p-3 rounded-full bg-black/10 hover:bg-black/20 transition-all duration-300 transform hover:scale-110 backdrop-blur-sm"
                       >
                         <Heart
-                          className={`w-6 h-6 transition-colors duration-300 ${wishlist.some(item => item === device.DeviceId)
-                              ? 'fill-red-500 text-red-500'
-                              : 'text-gray-700'
+                          className={`w-6 h-6 transition-colors duration-300 ${((UserId == undefined) ? localWishList : wishlist).some(item => item === device.DeviceId)
+                            ? 'fill-red-500 text-red-500'
+                            : 'text-gray-700'
                             }`}
                         />
                       </button>
@@ -155,8 +186,8 @@ export const FeaturedProducts: React.FC = () => {
               key={index}
               onClick={() => !isAnimating && setCurrentIndex(index)}
               className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentIndex
-                  ? 'bg-white scale-125'
-                  : 'bg-gray-600 hover:bg-gray-500'
+                ? 'bg-white scale-125'
+                : 'bg-gray-600 hover:bg-gray-500'
                 }`}
             />
           ))}

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { UserNavbar } from "../components/Navbar";
+import { UserNavbar } from "../components/UserNavbar";
 import { useEffect, useState } from "react";
 import { Outlet, useParams } from "react-router-dom";
 
@@ -9,12 +9,14 @@ import { setDevices } from '../state/features/devicesSlice';
 import { useDispatch, useSelector } from "react-redux";
 import { setCart } from "../state/features/cartSlice";
 import { Footer } from "../components/Footer";
-
+import defaultImg from '../assets/user.png';
+import { syncLocalStorage } from "../state/features/localwishSlice";
+import { syncLocalCart } from "../state/features/localcartSlice";
 
 
 
 export const UserDashboard = () => {
-  const { UserId } = useParams<{ UserId: string }>();
+  const { UserId } = useParams<{ UserId?: string }>();
   const [image, setImage] = useState("");
   const dispatch = useDispatch();
   const categories = useSelector((state: RootState) => state.category.categories);
@@ -44,7 +46,7 @@ export const UserDashboard = () => {
           const response = await axios.get("http://localhost:3000/AdminDashboard/GetDevices");
           if (response && response.data) {
             dispatch(setDevices(response.data.fixedDevices));
-            if (cart.length === 0){
+            if (cart.length === 0) {
               dispatch(setCart(response.data.fixedDevices));
             }
           }
@@ -57,13 +59,29 @@ export const UserDashboard = () => {
   }, [dispatch, devices.length]);
   useEffect(() => {
     const getData = async () => {
-      const response = await axios.get(`http://localhost:3000/UserDashboard/${UserId}`);
-      if (response && response.data) {
-        setImage(response.data.UserInfo.img);
+      try {
+        if (UserId != undefined) {
+          const response = await axios.get(`http://localhost:3000/UserDashboard/${UserId}`);
+          if (response && response.data) {
+            // console.log(response.data);
+            setImage(response.data.UserInfo.img);
+          }
+        } else {
+          setImage(defaultImg);
+        }
+      } catch (error) {
+        setImage(defaultImg);
       }
     }
     getData();
-  }, [])
+  }, []);
+
+  useEffect(()=>{
+    if(UserId == undefined){
+      syncLocalStorage();
+      syncLocalCart();
+    }
+  },[])
 
 
 

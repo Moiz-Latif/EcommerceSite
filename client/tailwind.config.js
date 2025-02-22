@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+import { animations, keyframes } from 'framer-motion'
 import defaultTheme from 'tailwindcss/defaultTheme'
 
 export default {
@@ -18,10 +19,20 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      animation: {
+        float: 'float 6s ease-in-out infinite',
+        'float-slow': 'float 8s ease-in-out infinite',
+        'float-slower': 'float 10s ease-in-out infinite',
+      },
       colors: {
         primary: {
           light: '#FAFAF9', // stone-50
           dark: '#000000',  // black
+        }, keyframes: {
+          float: {
+            '0%, 100%': { transform: 'translateY(0)' },
+            '50%': { transform: 'translateY(-20px)' },
+          },
         },
         secondary: {
           light: '#E7E5E4', // stone-200

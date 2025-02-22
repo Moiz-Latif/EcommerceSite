@@ -1,19 +1,23 @@
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
-import { Express, Router } from "express";
+import { Router } from "express";
 import bcrypt from "bcrypt";
 import { Request, Response } from 'express';
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import { connect } from "http2";
-
-
+import { v4 as uuidv4, v4 } from 'uuid';
+import Stripe from "stripe";
+import { Cookie } from "express-session";
+import { verifyAdminToken } from "../middlewares/authMiddleware";
 interface CustomRequest extends Request {
   files?: Express.Multer.File[]; // This ensures `files` is recognized
 }
-
-// Load environment variables from .env
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecretKey) {
+  throw new Error("Stripe secret key is not defined");
+}
+const stripe = new Stripe(stripeSecretKey);
 dotenv.config();
 
 export const router = Router();
@@ -52,6 +56,20 @@ async function main() {
     res.json({ status: 'Server is running', timestamp: new Date().toISOString() });
   });
 
+
+  router.get('/AdminDashboard/getData', async (req, res) => {
+    try {
+      const Users = await prisma.user.findMany();
+      const Devices = await prisma.user.findMany();
+      const Orders = await prisma.order.findMany();
+      const totalPrice = Orders.reduce((sum, item) => sum + item.totalPrice, 0);
+      if (Users && Devices && Orders && totalPrice) {
+        res.status(200).json({ Users, Devices, Orders, totalPrice });
+      }
+    } catch (error) {
+
+    }
+  })
 
   router.get('/AdminDashboard/GetDevices', async (req, res) => {
     try {
@@ -127,32 +145,38 @@ async function main() {
             deviceId: DeviceId,   // Replace with the actual deviceId
           },
         },
-      }); 
+      });
       if (getReview) {
         res.status(200).json({ getReview, UserImg: User.img, UserUsername: User.username });
       } else {
-        res.status(200).json({UserImg:User.img, UserUsername:User.username})
+        res.status(200).json({ UserImg: User.img, UserUsername: User.username })
       }
     }
 
   });
 
+  router.post('/AdminLogin', async (req, res) => {
+    const { password } = req.body;
+    if (password != 'iamadmin') {
+      res.status(401).json({ message: "Invalid Password" });
+    };
 
+    const token = jwt.sign("Thisisthepayloadfornow", "Thisisthejwtsecretfornow");
 
-  router.post('/AdminLogin', CheckToken, async (req, res) => {
-    if (req.body) {
-      console.log('Received data from frontend successfully')
-    }
-    const JWT_KEY = process.env.JWT_KEY as string;
-    const payload = {
-      name: 'Muhammad Moiz Latif',
-      password: "iamadmin"
-    }
-    const JWTtoken = jwt.sign(payload, "JWT_KEY", { expiresIn: '1h' });
-    res.cookie("Admintoken", JWTtoken, { httpOnly: true })
-    res.json('The backend is working as well');
+    res.cookie("AdminToken", token, {
+      httpOnly: true,  // Prevents JS access
+      sameSite: "strict",  // Prevents CSRF attacks
+      secure: process.env.NODE_ENV === "production", // Ensure same attributes as when setting the cookie
+      maxAge: 60 * 60 * 1000, // 1 hour expiration
+    });
+
+    res.json({ message: "Login successful" });
   });
 
+  router.get('/AdminLogout', async (req, res) => {
+    res.clearCookie('AdminToken');
+    res.status(200).json({ message: "Logged out successfully" });
+  })
 
   router.post('/UserLogin', async (req, res) => {
     const { username, password } = req.body;
@@ -161,6 +185,7 @@ async function main() {
         username: username
       }
     });
+    console.log(checkUser);
     // Create JWT payload excluding sensitive information
     const payload = {
       id: checkUser?.id,
@@ -208,11 +233,13 @@ async function main() {
       }
     });
     if (User) {
-      res.json({ UserInfo: User })
+      res.status(200).json({ UserInfo: User })
+    } else { 
+      res.status(400).json({message:"No user found"})
     }
   })
 
-  router.get('/AdminDashboard/Users', async (req, res) => {
+  router.get('/AdminDashboard/Users',async (req, res) => {
     const AllUsers = await prisma.user.findMany();
     if (AllUsers) {
       res.json(AllUsers);
@@ -229,6 +256,7 @@ async function main() {
 
   router.post('/AdminDashboard/AddDevice', upload.array('images'), async (req, res) => {
     try {
+      console.log('hello');
       const {
         name,
         model,
@@ -241,9 +269,10 @@ async function main() {
         serialNumber,
         specifications
       } = req.body;
-
       // Handle file uploads to Cloudinary
       const files = req.files; // Now TypeScript recognizes `files`
+      console.log(req.body);
+      console.log(req.files)
       const imageUrls: string[] = [];
       if (files && Array.isArray(files)) {
         for (const file of files) {
@@ -256,9 +285,6 @@ async function main() {
       const parsedQuantity = parseInt(quantity, 10);
       const parsedPrice = parseFloat(price);
 
-      let categoryCheck = await prisma.category.findUnique({
-        where: { CategoryName: category }
-      });
 
       const newDevice = await prisma.device.create({
         data: {
@@ -278,15 +304,13 @@ async function main() {
           status: "PENDING"
         }
       });
-
+      console.log(newDevice);
       const device = {
         ...newDevice,
         SerialNumber: newDevice.SerialNumber.toString(),
       };
 
-      console.log(device);
-
-      res.status(201).json({ message: 'Device added successfully', device });
+      res.status(200).json({ message: 'Device added successfully', device });
     } catch (error) {
       console.error('Error storing device:', error);
       res.status(500).json({ error: 'An error occurred while adding the device.' });
@@ -588,33 +612,83 @@ async function main() {
 
   });
 
-
-
-  async function CheckToken(req: any, res: any, next: any) {
+  router.post('/UserDashboard/:UserId/Cart/Clear', async (req, res) => {
+    const { UserId } = req.params;
     try {
-      // Retrieve the token from cookies
-      const token = req.cookies.Admintoken;
-
-      if (!token) {
-        return res.status(401).json({ error: 'No token provided. Please log in.' });
-      }
-
-      // Verify the token
-      const JWT_KEY = process.env.JWT_KEY as string;
-      const decoded = jwt.verify(token, JWT_KEY);
-
-      // Attach decoded information to the request for further use
-      req.admin = decoded;
-
-      // Call the next middleware or route handler
-      next();
+      const Cart = await prisma.cart.deleteMany({
+        where: { userId: UserId }
+      });
+      res.status(200).json({ message: "Cart" });
     } catch (error) {
-      console.error("Error validating token:", error);
-      return res.status(401).json({ error: 'Invalid or expired token.' });
+      console.error("Error clearing cart:", error);
+      res.status(500).json({ error: "Failed to clear cart." });
     }
-  }
+
+  })
+
+  router.post('/UserDashboard/:UserId/PlaceOrder', async (req, res) => {
+    const { UserId } = req.params;
+    const { formData, cart, totalPrice } = req.body;
+    const { address, city, country, zipCode } = formData;
+    const itempotencyKey = uuidv4();
+
+    try {
+      const customer = await stripe.customers.create({
+        email: formData.email,
+        name: formData.name,
+        address: {
+          line1: address,
+          city: city,
+          country: country,
+          postal_code: zipCode
+
+        }
+      })
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(totalPrice * 100), //convert to cents
+        currency: 'usd',
+        customer: customer.id,
+        automatic_payment_methods: {
+          enabled: true
+        },
+        confirm: true //automatically confirm the payments
+
+      })
+      if (paymentIntent.status !== 'succeeded') {
+        res.status(400).json({ message: 'Payment failed' });
+        return;
+      }
+      // Create the order
+      const order = await prisma.order.create({
+        data: {
+          userId: UserId,
+          totalPrice: totalPrice,
+          address: address,
+          city: city,
+          country: country,
+          zipCode: zipCode,
+          status: "CONFIRMED",
+        },
+      });
+
+      // Create order items and connect them to the order
+      const orderItems = cart.map((item: any) => ({
+        orderId: order.OrderId,
+        deviceId: item.DeviceId,
+        quantity: item.Quantity,
+      }));
+
+      await prisma.orderItem.createMany({
+        data: orderItems,
+      });
 
 
+      res.status(201).json({ message: 'Order placed successfully', order });
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ message: 'Failed to place order', error: error.message });
+    }
+  });
 }
 
 main()

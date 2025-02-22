@@ -2,6 +2,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 interface Category {
+  CategoryId: any;
   _id: number;
   name: string;
   image: string;

@@ -15,11 +15,12 @@ model User {
   password        String
   img             String
   role            Role          @default(USER)
-  devices         Device[] 
+  devices         Device[]
   WishListDevices String[]
   CartDevices     Cart[]
   transactions    Transaction[]
-  Review Review[]
+  Review          Review[]
+  Order           Order[]
 }
 
 model Cart {
@@ -47,7 +48,10 @@ model Device {
   status         Status        @default(PENDING)
   Price          Float // Price of the device
   transactions   Transaction[]
-  Reviews Review[]
+  Reviews        Review[]
+  Order          Order?        @relation(fields: [orderOrderId], references: [OrderId])
+  orderOrderId   String?
+  OrderItem      OrderItem[]
 }
 
 model Transaction {
@@ -69,15 +73,47 @@ model Category {
   devices      Device[]
 }
 
+model Order {
+  OrderId    String      @id @default(uuid())
+  user       User        @relation(fields: [userId], references: [id]) // Relation to the user
+  userId     String
+  createdAt  DateTime    @default(now())
+  items      OrderItem[] // One-to-many relation with OrderItem for devices and quantities
+  totalPrice Float // Total price of the order
+  status     OrderStatus // Enum to represent order status
+  address    String // Shipping address
+  city       String // City
+  country    String // Country
+  zipCode    String // Zip code
+  Device     Device[]
+}
+
+model OrderItem {
+  id       String @id @default(uuid())
+  order    Order  @relation(fields: [orderId], references: [OrderId])
+  orderId  String
+  device   Device @relation(fields: [deviceId], references: [DeviceId])
+  deviceId String
+  quantity Int // Quantity of this device in the order
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
 model Review {
-  ReviewId      String   @id @default(uuid()) // Unique identifier for the review
-  description   String   // The review content
-  rating        Float    // The rating given by the user
-  user          User     @relation(fields: [userId], references: [id]) // Relation to the user
-  userId        String   // Foreign key for the user
-  device        Device   @relation(fields: [deviceId], references: [DeviceId]) // Relation to the device
-  deviceId      String   // Foreign key for the device
-  createdAt     DateTime @default(now()) // Timestamp for when the review was created
+  ReviewId    String   @id @default(uuid()) // Unique identifier for the review
+  description String // The review content
+  rating      Float // The rating given by the user
+  user        User     @relation(fields: [userId], references: [id]) // Relation to the user
+  userId      String // Foreign key for the user
+  device      Device   @relation(fields: [deviceId], references: [DeviceId]) // Relation to the device
+  deviceId    String // Foreign key for the device
+  createdAt   DateTime @default(now()) // Timestamp for when the review was created
 
   @@unique([userId, deviceId]) // Ensure a user can review a device only once
 }

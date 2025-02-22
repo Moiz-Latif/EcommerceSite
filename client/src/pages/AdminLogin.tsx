@@ -1,4 +1,3 @@
-'use client'
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -21,9 +20,9 @@ type AdminLoginFormData = z.infer<typeof adminLoginSchema>;
 export function AdminLogin() {
   const navigate = useNavigate();
   const [isHidden, setIsHidden] = useState(true);
-  const [Password , setPassword] = useState("");
+  const [Password, setPassword] = useState("");
 
-  const { register, handleSubmit, formState: { errors }} = useForm<AdminLoginFormData>({
+  const { register, handleSubmit, formState: { errors } } = useForm<AdminLoginFormData>({
     resolver: zodResolver(adminLoginSchema),
   });
 
@@ -33,17 +32,21 @@ export function AdminLogin() {
   };
 
   const onSubmit = async (data: AdminLoginFormData) => {
-    if(data.password === 'iamadmin'){
-      navigate('/AdminDashboard');
-    }
-
-    const response = await axios.post('http://localhost:3000/AdminLogin',data,{
-      withCredentials:true
-    });
-    //@ts-ignore
-    const Getdata = response.data;
-    if(Getdata){
-      console.log('Recieved data successfully');
+    // if (data.password === 'iamadmin') {
+    //   navigate('/AdminDashboard');
+    // }
+    try {
+      const response  = await axios.post('http://localhost:3000/AdminLogin',{
+        password:data.password
+      },{
+        withCredentials:true
+      });
+      if(response.data){
+        console.log(response.data);
+        navigate('AdminDashboard');
+      }
+    } catch (error) {
+      alert('Invalid Credentials');
     }
   }
 
@@ -69,7 +72,7 @@ export function AdminLogin() {
       </div>
       <div className="flex justify-between">
         {errors.password && <p className="text-red-500 text-sm inline-block">{errors.password.message}</p>}
-        <button className="text-sm" type="button" onClick={()=>setPassword(prevPassword => prevPassword === '' ?'iamadmin' : '')}>Forgot password?</button>
+        <button className="text-sm" type="button" onClick={() => setPassword(prevPassword => prevPassword === '' ? 'iamadmin' : '')}>Forgot password?</button>
       </div>
 
       <button

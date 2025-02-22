@@ -16,20 +16,28 @@ interface UserNavbarProps {
 }
 
 export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
-    const { UserId } = useParams()
+    const { UserId } = useParams();
     const [isOpen, setIsOpen] = useState(false);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isWishList, setIsWishList] = useState(false);
     const [isCart, setIsCart] = useState(false);
-    const wishList = useSelector((state:RootState)=>state.wishList.list);
+    const wishList = useSelector((state: RootState) => state.wishList.list);
     const categories = useSelector((state: RootState) => state.category.categories);
     const cart = useSelector((state: RootState) => state.cart.list);
-    const cartCount = cart.length;
     const dropdownRef = useRef<HTMLDivElement>(null);
     const searchRef = useRef<HTMLDivElement>(null);
-
-    const wishlistCount = wishList.length;
+    const localWishList = useSelector((state: RootState) => state.localWishList.list);
+    const localCart = useSelector((state:RootState)=>state.localCart.list);
+    var wishlistCount = 0;
+    var cartCount = 0;
+    if (UserId == undefined) {
+        wishlistCount = localWishList.length;
+        cartCount = localCart.length;
+    } else {
+        wishlistCount = wishList.length;
+        cartCount = cart.length
+    }
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -52,14 +60,14 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
         <nav className="fixed w-full h-16 font-roboto px-4 md:px-8 lg:px-16 border-b border-ghost_white-900 bg-black z-50">
             <div className='flex justify-between items-center h-full'>
                 {/* Logo */}
-                <NavLink to="" className='flex items-center'>
+                <NavLink to="/" className='flex items-center'>
                     <img src={logo} alt="Gizmo logo" className='w-8 md:w-10' />
                     <span className='text-lg md:text-xl font-medium text-ghost_white-900 ml-1 tracking-wide'>GIZMO</span>
                 </NavLink>
 
                 {/* Center Section */}
                 <div className='hidden md:flex justify-center items-center space-x-4 ml-20'>
-                    <NavLink to={`/UserDashboard/${UserId}`} className='text-base text-ghost_white-900 hover:opacity-70 transition-colors duration-300'>HOME</NavLink>
+                    <NavLink to={(UserId != undefined) ? `/UserDashboard/${UserId}` : "/"} className='text-base text-ghost_white-900 hover:opacity-70 transition-colors duration-300'>HOME</NavLink>
                     <div className='relative' ref={dropdownRef} onMouseEnter={() => setIsCategoryOpen(true)
                     }
                         onMouseLeave={() => setIsCategoryOpen(false)}>
@@ -74,7 +82,7 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                             <div className="absolute left-0 w-48 bg-black rounded-md shadow-lg py-1 z-50">
                                 <ul className="divide-y divide-gray-600">
                                     {categories.map((category: any) => (
-                                        <li>
+                                        <li key={category.CategoryName}>
                                             <NavLink
                                                 key={category.CategoryId}
                                                 to={`Category/${category.CategoryId}`}
@@ -132,7 +140,7 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                                 {cartCount}
                             </span>
                         )}
-                         {
+                        {
                             isCart && <CartDropDown />
                         }
                     </div>
@@ -144,9 +152,9 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                         >
                             <button className="flex items-center space-x-1 p-1 rounded-full transition-colors duration-300 hover:opacity-70">
                                 <img
-                                    src={ImageURl}
+                                    src={ImageURl || ""}
                                     alt="User profile"
-                                    className="rounded-full w-7 h-7"
+                                    className="rounded-full w-6 h-6"
                                 />
                                 <img src={dropdown} alt="Dropdown arrow" className={`w-3 transition-transform duration-300 ${!isOpen ? 'transform rotate-180' : ''}`} />
                             </button>
@@ -170,11 +178,12 @@ export const UserNavbar: React.FC<UserNavbarProps> = ({ ImageURl }) => {
                                     <div className="my-1 border-t border-gray-600"></div>
 
                                     <NavLink
-                                        to="/"
-                                        className="block px-4 py-2 text-sm text-ghost_white hover:bg-engineering_orange-700 hover:text-ghost_white-500 transition-colors duration-300"
+                                        to="/Login"
+                                        className={`block px-4 py-2 text-sm text-ghost_white ${UserId == undefined ? "hover:bg-green-700" : "hover:bg-red-700"} hover:text-ghost_white transition-colors duration-300`}
                                     >
-                                        Logout
+                                        {UserId == undefined ? "Login" : "Logout"}
                                     </NavLink>
+
                                 </div>
                             )}
                         </div>

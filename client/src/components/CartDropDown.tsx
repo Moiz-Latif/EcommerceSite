@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../state/store";
 import { Plus, Minus, ShoppingCart, Trash2, CreditCard, X } from 'lucide-react';
-import { RemoveFromCartAsync, setCartAsync, updateCartAsync } from "../state/features/cartSlice";
-import { useParams } from "react-router-dom";
+import { clearCartAsync, RemoveFromCartAsync, setCartAsync, updateCartAsync } from "../state/features/cartSlice";
+import { NavLink, useParams } from "react-router-dom";
 // import { incrementQuantity, decrementQuantity, removeFromCart, clearCart } from "../state/features/cartSlice";
 
 export const CartDropDown: React.FC = () => {
@@ -11,13 +11,26 @@ export const CartDropDown: React.FC = () => {
     const dispatch = useDispatch();
     const [isOpen, setIsOpen] = useState(false);
     const Cart = useSelector((state: RootState) => state.cart.list);
+    const localCart = useSelector((state: RootState)=>state.cart.list);
     const Devices = useSelector((state: RootState) => state.device.devices);
-    const devicesInCart = Cart.map(cartItem => {
-        const device = Devices.find(device => device.DeviceId === cartItem.DeviceId);
-        return { ...device, quantity: cartItem.Quantity };
-    });
-
-    const totalPrice = devicesInCart.reduce((total, item) => total + (item?.Price || 0) * (item?.quantity || 0), 0);
+    let devicesInCart: any[] = [];
+    if(UserId == undefined){
+        if(Cart.length > 0){
+            devicesInCart = localCart.map(cartItem => {
+                const device = Devices.find(device => device.DeviceId === cartItem.DeviceId);
+                return { ...device, quantity: cartItem.Quantity };
+            });
+        }
+    } else {
+        if(Cart.length > 0){
+            devicesInCart = Cart.map(cartItem => {
+                const device = Devices.find(device => device.DeviceId === cartItem.DeviceId);
+                return { ...device, quantity: cartItem.Quantity };
+            });
+        }
+    }
+    
+    const totalPrice = devicesInCart?.reduce((total, item) => total + (item?.Price || 0) * (item?.quantity || 0), 0);
 
     useEffect(() => {
         setIsOpen(true);
@@ -78,7 +91,7 @@ export const CartDropDown: React.FC = () => {
                 <div className="flex-grow overflow-y-auto">
                     {devicesInCart.length > 0 ? (
                         <ul className="divide-y divide-gray-600">
-                            {devicesInCart.map((item: any) => (
+                            {devicesInCart?.map((item: any) => (
                                 <li
                                     key={item.DeviceId}
                                     className="flex items-center gap-4 px-4 py-2 hover:bg-gray-800"
@@ -152,7 +165,8 @@ export const CartDropDown: React.FC = () => {
                     </div>
                     <div className="space-y-2">
                         <button
-                            // onClick={() => dispatch(clearCart())}
+                        //@ts-ignore
+                            onClick={() => dispatch(clearCartAsync({UserId}))}
                             className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-300 flex items-center justify-center"
                         >
                             <Trash2 className="w-4 h-4 mr-2" />
@@ -162,10 +176,10 @@ export const CartDropDown: React.FC = () => {
                             <ShoppingCart className="w-4 h-4 mr-2" />
                             View Cart
                         </button>
-                        <button className="w-full px-4 py-2 bg-white text-black rounded-md hover:bg-gray-200 transition-colors duration-300 flex items-center justify-center">
+                        <NavLink to="Checkout" className="w-full px-4 py-2 bg-white text-black rounded-md hover:bg-gray-200 transition-colors duration-300 flex items-center justify-center">
                             <CreditCard className="w-4 h-4 mr-2" />
                             Proceed to Checkout
-                        </button>
+                        </NavLink >
                     </div>
                 </div>
             </div>

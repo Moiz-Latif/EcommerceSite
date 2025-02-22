@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../state/store";
 import { useParams } from "react-router-dom";
 import { updateCartAsync } from "../state/features/cartSlice";
-import { ChevronLeft, ChevronRight, Plus, Minus, ShoppingCart, Star, ChevronDown, ChevronUp, Edit, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Minus, ShoppingCart, Star, ThumbsUp, ThumbsDown, MoreVertical } from 'lucide-react';
 import axios from "axios";
 
 export const ProductPage: React.FC = () => {
@@ -15,13 +15,12 @@ export const ProductPage: React.FC = () => {
     const dispatch = useDispatch();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [animationDirection, setAnimationDirection] = useState<'left' | 'right' | null>(null);
-    const [isSpecsOpen, setIsSpecsOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'specs' | 'reviews'>('specs');
     const [userRating, setUserRating] = useState(0);
     const [userReview, setUserReview] = useState("");
     const [existingReview, setExistingReview] = useState<{ rating: number; description: string, date: string } | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [UserData, setUserData] = useState<{ UserImg: string, Username: string } | null>(null);
-
 
     useEffect(() => {
         if (DeviceId && UserId) {
@@ -53,7 +52,6 @@ export const ProductPage: React.FC = () => {
         }
     }, [DeviceId, UserId]);
 
-
     if (!device) {
         return <div className="text-center py-10 text-gray-700">Device not found</div>;
     }
@@ -64,8 +62,8 @@ export const ProductPage: React.FC = () => {
             setCurrentImageIndex((prevIndex) =>
                 prevIndex + 1 >= device.Images.length ? 0 : prevIndex + 1
             );
-            setAnimationDirection(null); // Reset after transition
-        }, 500); // Match the animation duration
+            setAnimationDirection(null);
+        }, 500);
     };
 
     const prevImage = () => {
@@ -74,10 +72,9 @@ export const ProductPage: React.FC = () => {
             setCurrentImageIndex((prevIndex) =>
                 prevIndex - 1 < 0 ? device.Images.length - 1 : prevIndex - 1
             );
-            setAnimationDirection(null); // Reset after transition
-        }, 500); // Match the animation duration
+            setAnimationDirection(null);
+        }, 500);
     };
-
 
     const averageRating = 4.5; // Mock data for average rating
 
@@ -89,6 +86,7 @@ export const ProductPage: React.FC = () => {
             dispatch(updateCartAsync({ UserId, Quantity: Quantity, DeviceId: deviceId }));
         }
     };
+
     function toggleDecrementCart(deviceId: string) {
         const CartItem = Cart.find((item) => item.DeviceId === deviceId);
         if (CartItem) {
@@ -97,6 +95,7 @@ export const ProductPage: React.FC = () => {
             dispatch(updateCartAsync({ UserId, Quantity: Quantity, DeviceId: deviceId }));
         }
     }
+
     const customerReviews = [
         { id: 1, name: "John Doe", rating: 5, comment: "Great product! Highly recommended.", date: "2023-06-01" },
         { id: 2, name: "Jane Smith", rating: 4, comment: "Good value for money, but could be improved.", date: "2023-05-28" },
@@ -106,14 +105,13 @@ export const ProductPage: React.FC = () => {
     const handleSubmitReview = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-
             await axios.post(`http://localhost:3000/UserDashboard/${UserId}/Device/${device.DeviceId}/Create`, {
                 rating: userRating,
                 review: userReview,
                 date: Date()
             });
 
-            setExistingReview({ rating: userRating, description: userReview, date: Date() });
+            setExistingReview({ rating: userRating, description: userReview, date: new Date().toISOString().split('T')[0] });
             setIsEditing(false);
         } catch (error) {
             console.error("Failed to submit review:", error);
@@ -135,10 +133,6 @@ export const ProductPage: React.FC = () => {
         }
     };
 
-
-
-
-
     return (
         <div className="bg-white text-black min-h-screen font-roboto pt-20 px-4 sm:px-6 lg:pl-16 lg:pr-20">
             <div className="max-w-7xl mx-auto py-8">
@@ -150,9 +144,9 @@ export const ProductPage: React.FC = () => {
                             <img
                                 src={device.Images[currentImageIndex]}
                                 alt={device.DeviceName}
-                                className={`w-full h-full object-cover rounded-lg shadow-md transition-transform duration-500 ease-in-out ${animationDirection === 'right' ? 'translate-x-full opacity-0' : ''
+                                className={`absolute w-full h-full object-cover rounded-lg shadow-md transition-transform duration-500 ease-in-out ${animationDirection === 'right' ? 'translate-x-full opacity-0' : ''
                                     } ${animationDirection === 'left' ? '-translate-x-full opacity-0' : ''}`}
-                                onAnimationEnd={() => setAnimationDirection(null)} // Ensure reset
+                                onAnimationEnd={() => setAnimationDirection(null)}
                             />
                             <button
                                 onClick={prevImage}
@@ -257,149 +251,131 @@ export const ProductPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Specifications Dropdown */}
-                <div className="mt-8 border border-gray-200 rounded-3xl shadow-md overflow-hidden">
-                    <button
-                        onClick={() => setIsSpecsOpen(!isSpecsOpen)}
-                        className="w-full flex justify-between items-center p-5 bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
-                    >
-                        <h2 className="text-xl font-medium">Specifications</h2>
-                        {isSpecsOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
-                    </button>
-                    {isSpecsOpen && (
-                        <div className="p-5">
-                            <table className="w-full border-collapse">
-                                <tbody>
-                                    {Object.entries(device.Specifications).map(([key, value], index) => (
-                                        <tr key={key} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                                            <td className="py-2 px-4 border-b border-gray-200 font-semibold capitalize">
-                                                {key.replace("_", " ")}
-                                            </td>
-                                            <td className="py-2 px-4 border-b border-gray-200">
-                                                {typeof value === "object"
-                                                    ? JSON.stringify(value, null, 2)
-                                                    : value}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                {/* Specs and Reviews Tabs */}
+                <div className="mt-8">
+                    <div className="flex justify-center mb-4">
+                        <button
+                            className={`px-6 py-2 rounded-l-md ${activeTab === 'specs' ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
+                            onClick={() => setActiveTab('specs')}
+                        >
+                            Specifications
+                        </button>
+                        <button
+                            className={`px-6 py-2 rounded-r-md ${activeTab === 'reviews' ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
+                            onClick={() => setActiveTab('reviews')}
+                        >
+                            Reviews
+                        </button>
+                    </div>
+
+                    {activeTab === 'specs' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {Object.entries(device.Specifications).map(([key, value], index) => (
+                                <div key={index} className="bg-white p-4 rounded-xl shadow-md border border-gray-200">
+                                    <h3 className="text-lg font-semibold capitalize mb-2">
+                                        {key.replace("_", " ")}
+                                    </h3>
+                                    <p className="text-gray-700">
+                                        {typeof value === "object"
+                                            ? JSON.stringify(value, null, 2)
+                                            : value}
+                                    </p>
+                                </div>
+                            ))}
                         </div>
                     )}
-                </div>
-            </div>
-            <div className="bg-white text-black min-h-screen font-roboto pt-20 ">
-                <div className="w-full my-12 border-[1px] border-gray-200 rounded-3xl px-5 shadow-lg bg-ghost_white-800">
-                    <div className="w-full my-12">
-                        <h1 className="text-4xl font-bold mb-8 text-center">Customer Reviews</h1>
-                        <div className="flex flex-col lg:flex-row gap-8">
-                            {/* Add/Edit a review form */}
-                            <div className="lg:w-1/2 p-8 border border-gray-200 rounded-2xl bg-white shadow-lg">
-                                <h2 className="text-3xl font-bold mb-6 text-gray-800 border-b pb-4">
-                                    {existingReview && !isEditing ? "Your Review" : (isEditing ? "Edit Your Review" : "Write a Review")}
-                                </h2>
-                                <div className="space-y-6">
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex">
-                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                <Star
-                                                    key={star}
-                                                    size={24}
-                                                    className={`cursor-pointer transition-all ${star <= (isEditing ? userRating : (existingReview?.rating || 0)) ? "text-yellow-400" : "text-gray-300 hover:text-yellow-200"}`}
-                                                    fill="currentColor"
-                                                    onClick={() => setUserRating(star)}
-                                                    onMouseEnter={() => !existingReview && setUserRating(star)}
-                                                    onMouseLeave={() => !existingReview && setUserRating(userRating)}
-                                                />
-                                            ))}
-                                        </div>
-                                        <p className="text-sm text-gray-500">{existingReview?.date || new Date().toISOString().split('T')[0]}</p>
-                                    </div>
-                                    {(isEditing || !existingReview) ? (
-                                        <textarea
-                                            rows={6}
-                                            className="w-full px-4 py-3 text-gray-700 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                                            value={userReview}
-                                            onChange={(e) => setUserReview(e.target.value)}
-                                            placeholder="Share your thoughts about the product..."
-                                            required
-                                        ></textarea>
-                                    ) : (
-                                        <p className="text-gray-700 text-lg leading-relaxed">{existingReview.description}</p>
-                                    )}
-                                    <div className="flex items-center gap-4 py-4 border-t border-gray-100">
-                                        <img src={UserData?.UserImg} alt={UserData?.Username} className="w-12 h-12 rounded-full object-cover" />
-                                        <div>
-                                            <h3 className="font-semibold text-gray-800">{UserData?.Username}</h3>
-                                            <p className="text-sm text-gray-500">Verified Buyer</p>
-                                        </div>
-                                    </div>
 
-                                    <div className="flex space-x-4 pt-4">
-                                        {existingReview && !isEditing ? (
-                                            <>
-                                                <button
-                                                    onClick={handleEditReview}
-                                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all flex items-center justify-center"
-                                                >
-                                                    <Edit size={18} className="mr-2" />
-                                                    Edit Review
-                                                </button>
-                                                <button
-                                                    onClick={handleDeleteReview}
-                                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all flex items-center justify-center"
-                                                >
-                                                    <Trash2 size={18} className="mr-2" />
-                                                    Delete Review
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <button
-                                                onClick={handleSubmitReview}
-                                                className="w-full px-6 py-3 bg-blue-600 text-lg font-semibold text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all flex items-center justify-center"
-                                            >
-                                                <Star size={20} className="mr-2" />
-                                                {isEditing ? "Update Review" : "Submit Review"}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                    {activeTab === 'reviews' && (
+                        <div className="bg-white text-black font-sans p-4 md:p-8">
+                            <div className="max-w-7xl mx-auto">
 
-                            {/* Display customer reviews */}
-                            <div className="lg:w-1/2 p-6 border border-gray-300 rounded-xl bg-white">
-                                <h2 className="text-3xl font-semibold mb-6">Recent Reviews</h2>
-                                <div className="space-y-6 max-h-[400px] overflow-y-auto pr-4">
-                                    {customerReviews.map((review) => (
-                                        <div key={review.id} className="p-4 bg-gray-100 rounded-lg shadow">
-                                            <div className="flex items-center mb-2">
-                                                <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center mr-3">
-                                                    {/* User icon can be added here */}
+                                {/* Add/Edit Review Form */}
+                                <div className="mb-8 bg-gray-100 p-4 rounded-lg">
+                                    <div className="flex items-start space-x-4">
+                                        <img src={UserData?.UserImg} alt={UserData?.Username} className="w-10 h-10 rounded-full" />
+                                        <div className="flex-grow">
+                                            <textarea
+                                                rows={3}
+                                                className="w-full px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                                value={userReview}
+                                                onChange={(e) => setUserReview(e.target.value)}
+                                                placeholder="Add a public comment..."
+                                            ></textarea>
+                                            <div className="mt-2 flex items-center justify-between">
+                                                <div className="flex">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <Star
+                                                            key={star}
+                                                            size={20}
+                                                            className={`cursor-pointer transition-all ${star <= userRating ? "text-yellow-400" : "text-gray-300 hover:text-yellow-200"}`}
+                                                            fill={star <= userRating ? "currentColor" : "none"}
+                                                            onClick={() => setUserRating(star)}
+                                                        />
+                                                    ))}
                                                 </div>
-                                                <div>
-                                                    <span className="font-semibold text-lg text-black">{review.name}</span>
-                                                    <div className="">
-                                                        <div className="flex mr-2">
-                                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                                <Star
-                                                                    key={star}
-                                                                    size={16}
-                                                                    className={star <= review.rating ? "text-yellow-400" : "text-gray-600"}
-                                                                    fill="currentColor"
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    </div>
+                                                <div className="flex space-x-2">
+                                                    <button
+                                                        onClick={() => { setUserReview(''); setUserRating(0); }}
+                                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button
+                                                        onClick={handleSubmitReview}
+                                                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    >
+                                                        {isEditing ? "Update" : "Comment"}
+                                                    </button>
                                                 </div>
                                             </div>
-                                            <p className="text-black mt-2">{review.comment}</p>
-                                            <h1 className="text-sm text-gray-400">{review.date}</h1>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Display Reviews */}
+                                <div className="space-y-6">
+                                    {customerReviews.map((review) => (
+                                        <div key={review.id} className="flex space-x-4">
+                                            <div className="flex-shrink-0">
+                                                <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                                    {review.name.charAt(0)}
+                                                </div>
+                                            </div>
+                                            <div className="flex-grow">
+                                                <div className="flex items-center mb-1">
+                                                    <span className="font-medium text-sm mr-2">{review.name}</span>
+                                                    <span className="text-gray-500 text-xs">{review.date}</span>
+                                                </div>
+                                                <div className="flex items-center mb-2">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <Star
+                                                            key={star}
+                                                            size={16}
+                                                            className={star <= review.rating ? "text-yellow-400" : "text-gray-300"}
+                                                            fill={star <= review.rating ? "currentColor" : "none"}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <p className="text-sm mb-2">{review.comment}</p>
+                                                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                                    <button className="flex items-center space-x-1 hover:text-blue-600">
+                                                        <ThumbsUp size={16} />
+                                                    </button>
+                                                    <button className="flex items-center space-x-1 hover:text-blue-600">
+                                                        <ThumbsDown size={16} />
+                                                    </button>
+                                                    <button className="hover:text-blue-600">Reply</button>
+                                                    <button className="hover:text-blue-600">
+                                                        <MoreVertical size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -6,6 +6,7 @@ import passport from 'passport';
 import { router as authRoutes } from './routes/authRoutes';
 import { router as testRoutes } from './routes/userRoutes';
 import dotenv from 'dotenv';
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -24,7 +25,7 @@ app.use(session({
 // Passport middleware for session handling
 app.use(passport.initialize());
 app.use(passport.session());
-
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({

@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
 import img from '../assets/ghost.jpg';
 import { FaSearch, FaBell, FaChevronDown } from 'react-icons/fa';
-import { NavLink } from 'react-router-dom';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export const AdminNavBar: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+
+  async function handleClick(){
+    const response = await axios('http://localhost:3000/AdminLogout',{withCredentials:true});
+    console.log(response.data);
+    navigate('/AdminLogin');
+  }
 
   return (
     <nav className="pl-56 fixed w-full h-16 bg-white border-b border-gray-300 px-4 py-2 flex items-center justify-between shadow-sm z-20">
@@ -62,16 +70,14 @@ export const AdminNavBar: React.FC = () => {
               <a
                 href="#settings"
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 "
-                
+
               >
                 Settings
               </a>
-              <NavLink
-                to="/AdminLogin"
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
+              <button className="pr-28 w-full py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={handleClick}>
                 Logout
-              </NavLink>
+              </button>
+
             </div>
           )}
         </div>

@@ -1,9 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-
-
-
 interface CartItem {
     DeviceId: string,
     Quantity: number
@@ -52,6 +49,15 @@ export const updateCartAsync = createAsyncThunk(
         if(response && response.data){
             console.log(response.data);
             dispatch(updateCart(response.data))
+        }
+    }
+)
+
+export const clearCartAsync = createAsyncThunk(
+    'Cart/Clear', async ({ UserId} : {UserId : string} , {dispatch})=>{
+        const response = await axios.post(`http://localhost:3000/UserDashboard/${UserId}/Cart/Clear`);
+        if(response){
+            dispatch(updateCart([]));
         }
     }
 )

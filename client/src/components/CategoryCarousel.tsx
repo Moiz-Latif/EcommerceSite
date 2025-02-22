@@ -54,43 +54,39 @@ export const CategoryCarousel: React.FC = () => {
                   <div className="group relative h-[400px] w-full overflow-hidden rounded-xl bg-gray-900 shadow-xl border border-white/10">
                     {/* Overlay */}
                     <div className="absolute inset-0 bg-black opacity-40 transition-opacity duration-500 group-hover:opacity-10" />
-                    
+
                     {/* Image */}
                     <img
                       src={category.Image}
                       alt={category.CategoryName}
                       className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-110 group-hover:rotate-3"
                     />
-                    
+
                     {/* Gradient Overlay */}
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black to-transparent opacity-90 transition-all duration-500 ease-in-out h-1/2 group-hover:h-full" />
-                    
+
                     {/* Content Container */}
-                    <div className="absolute inset-0 flex flex-col justify-end p-6 transition-all duration-500 ease-in-out group-hover:justify-center">
+                    <div className="absolute inset-0 flex flex-col justify-end items-center p-6 transition-all duration-500 ease-in-out">
                       {/* Title */}
-                      <h3 className="text-2xl font-bold text-white transform transition-all duration-500 ease-in-out translate-y-0 group-hover:-translate-y-4">
+                      <h3 className="text-2xl font-bold text-white transform transition-all duration-500 ease-in-out translate-y-0 group-hover:-translate-y-20">
                         {category.CategoryName}
                       </h3>
-                      
+
                       {/* Description - slides up from bottom */}
-                      <div className="overflow-hidden">
-                        <p className="text-gray-300 text-sm mb-4 transform transition-all duration-500 ease-in-out translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100">
-                          {category.Description}
-                        </p>
-                      </div>
-                      
+                      <p className="text-gray-300 text-sm opacity-0 transform translate-y-10 transition-all duration-500 ease-in-out group-hover:translate-y-0 group-hover:opacity-100">
+                        {category.Description}
+                      </p>
+
                       {/* Button - slides up from bottom with delay */}
-                      <div className="overflow-hidden">
-                        <NavLink 
-                          to={`Category/${category.CategoryId}`} 
-                          className="inline-flex items-center px-4 py-2 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm rounded-full text-sm font-medium w-max transform transition-all duration-500 delay-100 ease-in-out translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
-                        >
-                          Explore Now
-                          <ArrowRight className="ml-2 w-4 h-4" />
-                        </NavLink>
-                      </div>
+                      <NavLink 
+                        to={`Category/${category.CategoryId}`} 
+                        className="inline-flex items-center px-4 py-2 mt-4 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm rounded-full text-sm font-medium opacity-0 transform translate-y-10 transition-all duration-500 delay-100 ease-in-out group-hover:translate-y-0 group-hover:opacity-100"
+                      >
+                        Explore Now
+                        <ArrowRight className="ml-2 w-4 h-4" />
+                      </NavLink>
                     </div>
-                    
+
                     {/* Product Count Badge */}
                     <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium">
                       {category.ProductCount} Products

@@ -1,10 +1,13 @@
 import { useSelector } from "react-redux";
 import { RootState } from "../state/store";
+import { useParams } from "react-router-dom";
 
 export const WishListDropDown = () => {
+    const {UserId} = useParams();
     const wishList = useSelector((state: RootState) => state.wishList.list);
+    const localWishList = useSelector((state:RootState)=>state.localWishList.list);
     const devices = useSelector((state:RootState)=>state.device.devices);
-    const wishListDevices = devices.filter((device) => wishList.includes(device.DeviceId));
+    const wishListDevices = (UserId == undefined) ? devices.filter((device) => localWishList.includes(device.DeviceId)) : devices.filter((device) => wishList.includes(device.DeviceId));
 
     return (
         <div className="absolute -left-40 top-8">

@@ -11,8 +11,6 @@ import approvalsBlack from '../assets/file.png';
 import approvalsWhite from '../assets/file (1).png';
 import categoriesBlack from '../assets/menu.png';
 import categoriesWhite from '../assets/menu (1).png';
-import logoutBlack from '../assets/logout.png';
-import logoutWhite from '../assets/logout (1).png';
 
 export const AdminSideBar = () => {
   const navItems = [
@@ -21,7 +19,6 @@ export const AdminSideBar = () => {
     { to: "Devices", icon: { black: devicesBlack, white: devicesWhite }, label: "Devices" },
     { to: "approvals", icon: { black: approvalsBlack, white: approvalsWhite }, label: "Approvals" },
     { to: "categories", icon: { black: categoriesBlack, white: categoriesWhite }, label: "Categories" },
-    { to: "/AdminLogin", icon: { black: logoutBlack, white: logoutWhite }, label: "Logout" },
   ];
 
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);

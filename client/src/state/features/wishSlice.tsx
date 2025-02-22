@@ -13,9 +13,9 @@ const initialState: WishListState = {
 
 export const setWishListAsync = createAsyncThunk(
   'wishList/update',
-  async ({UserId} : {UserId : string} , {dispatch})=> {
+  async ({ UserId }: { UserId: string }, { dispatch }) => {
     const response = await axios.get(`http://localhost:3000/UserDashboard/${UserId}/WishList/Get`);
-    if(response && response.data){
+    if (response && response.data) {
       dispatch(setWishList(response.data.User));
     }
   }
@@ -24,23 +24,23 @@ export const addToWishlistAsync = createAsyncThunk(
   'wishList/addToWishlist',
   async ({ productId, UserId }: { productId: string, UserId: String }, { dispatch }) => {
     const response = await axios.post(`http://localhost:3000/UserDashboard/${UserId}/WishList/Add`, { productId }); // API to add product cart
-    if(response && response.data){
-      console.log(response.data)
+    if (response && response.data) {
       dispatch(addToWishList(productId)); // Add product with initial quantity of 1
     }
   }
-
 );
 
 export const deleteFromWishListAsync = createAsyncThunk(
   'wishlist/deleteFromWishList',
   async ({ productId, UserId }: { productId: string, UserId: string }, { dispatch }) => {
+
     const response = await axios.post(`http://localhost:3000/UserDashboard/${UserId}/WishList/Delete`, { productId }); // API to add product cart
     if (response && response.data) {
       console.log(response.data)
       dispatch(removeFromWishList(productId));
     }
   }
+
 )
 
 const wishlistSlice = createSlice({
@@ -49,7 +49,7 @@ const wishlistSlice = createSlice({
   reducers: {
 
     //updateWishlist
-    setWishList: (state , action) => {
+    setWishList: (state, action) => {
       state.list = action.payload
     },
 

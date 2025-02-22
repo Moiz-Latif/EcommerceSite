@@ -30,7 +30,6 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ onClose }) => {
                 const response = await axios.get(`http://localhost:3000/AdminDashboard/getCategory`);
                 if (response && response.data) {
                     setCategories(response.data);
-                    console.log('Category:', response.data);
                     return response.data;
                 }
             } catch (error) {
@@ -42,6 +41,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ onClose }) => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        console.log(e.target.value)
         setDeviceData(prev => ({ ...prev, [name]: value }));
     };
 
@@ -54,7 +54,6 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ onClose }) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const formData = new FormData();
-
         // Append all fields to FormData
         Object.entries(deviceData).forEach(([key, value]) => {
             if (key === 'specifications') {
