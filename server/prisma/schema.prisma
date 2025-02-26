@@ -24,10 +24,11 @@ model User {
 }
 
 model Cart {
-  DeviceId String  @id @default(uuid())
+  DeviceId String  
   Quantity Int
   user     User?   @relation(fields: [userId], references: [id])
-  userId   String?
+  userId   String
+  @@id([DeviceId , userId]) //composite primary key
 }
 
 model Device {

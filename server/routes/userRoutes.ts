@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
-import { Router } from "express";
+import e, { Router } from "express";
 import bcrypt from "bcrypt";
 import { Request, Response } from 'express';
 import jwt from "jsonwebtoken";
@@ -470,28 +470,32 @@ async function main() {
       const { UserId } = req.params;
       const { DeviceId } = req.body;
 
+
       // Check if the user exists
       const user = await prisma.user.findUnique({ where: { id: UserId }, include: { CartDevices: true } });
       if (!user) {
         res.status(404).json({ error: "User not found." }); return
       }
-      console.log('working');
       // Check if the device is already in the cart
       const existingCartItem = await prisma.cart.findUnique({
-        where: { DeviceId: DeviceId, userId: UserId },
+        where: { DeviceId_userId: {
+          DeviceId: DeviceId,
+          userId:UserId
+        } },
       });
-
       let updatedCartItem;
-
       if (existingCartItem) {
         // If the device exists in the cart, increment the quantity
         const updatedCartItem = await prisma.cart.update({
-          where: { DeviceId: existingCartItem.DeviceId },
+          where: { DeviceId_userId: {
+            DeviceId:existingCartItem.DeviceId,
+            userId:existingCartItem.userId
+          } },
           data: {
             Quantity: existingCartItem.Quantity + 1,
           }
         })
-        res.status(200).json(updatedCartItem);
+        res.status(200).json(updatedCartItem); return;
       } else {
         // If the device is not in the cart, create a new entry
         updatedCartItem = await prisma.cart.create({
@@ -529,7 +533,10 @@ async function main() {
       if (deviceInCart) {
         // Remove the device from the cart
         await prisma.cart.delete({
-          where: { DeviceId: DeviceId },
+          where: { DeviceId_userId: {
+            DeviceId:DeviceId,
+            userId:UserId
+          } },
         });
         const newCart = (await prisma.cart.findMany());
         res.status(200).json({ message: "Device removed from the cart.", newCart });
@@ -551,10 +558,10 @@ async function main() {
     });
     if (checkUser) {
       await prisma.cart.update({
-        where: {
-          DeviceId: DeviceId,
-          userId: UserId
-        },
+        where: { DeviceId_userId: {
+          DeviceId:DeviceId,
+          userId:UserId
+        } },
         data: {
           Quantity: Quantity
         }

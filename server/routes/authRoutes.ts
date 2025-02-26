@@ -28,7 +28,7 @@ router.get('/google',
         // Assuming `req.user` contains the authenticated user object
         //@ts-ignore
         const userId = req.user.id; // Extract the user ID
-        res.redirect(`http://localhost:5173/UserDashboard/${userId}`); // Pass userId as query parameter
+        res.redirect(`http://localhost:5173/dashboard/${userId}`); // Pass userId as query parameter
       } else {
         res.redirect('http://localhost:5173'); // Redirect to home on failure
       }
